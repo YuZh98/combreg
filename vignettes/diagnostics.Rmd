@@ -137,3 +137,79 @@ constrained maximizers.
 The fitted models are kept in `bm$fits`, so any of the diagnostics above can
 be applied to each method afterwards, e.g.
 `plot(bm$fits$unconstrained, type = "violin")`.
+
+## A non-trivial example: bipartite matching
+
+The paper's motivating application is matching data. Take a $3 \times 3$
+bipartite matching: $y \in \{0,1\}^9$ indicates which of the nine possible
+edges $(l, r)$ are used, and each node may be matched at most once. The
+constraint matrix is the node–edge incidence matrix of $K_{3,3}$ — totally
+unimodular by construction:
+
+```{r}
+L <- 3; R <- 3
+d <- L * R
+A <- matrix(0, L + R, d)
+for (l in seq_len(L)) {
+  for (r in seq_len(R)) {
+    edge <- (l - 1) * R + r
+    A[l, edge] <- 1        # left node l matched at most once
+    A[L + r, edge] <- 1    # right node r matched at most once
+  }
+}
+con_match <- crr_constraints(A, b = rep(1, L + R))
+con_match
+```
+
+With $d = 9$ coordinates, $m = 6$ constraints, and $p = 3$ covariates the
+posterior has 27 coefficients and the feasible set is the set of partial
+matchings — a substantially harder target than the toy problem above:
+
+```{r}
+sim_m <- simulate_crr(n = 200, p = 3, constraints = con_match, seed = 7)
+fit_m <- crr(sim_m$Y, sim_m$X, con_match,
+             n_iter = 3000, warmup = 1500, chains = 2, seed = 7)
+report_m <- crr_diagnostics(fit_m, beta = sim_m$beta)
+print(report_m, max_rows = 8)
+```
+
+This report is doing its job: at this chain length the sampler has **not**
+converged — split-Rhat well above 1.05 and effective sample sizes in the
+tens are flagged, the MH acceptance rate is much lower than in the small
+problem, and the coefficient RMSE and interval coverage against the known
+truth are correspondingly degraded. Note the contrast with the posterior
+predictive checks, which still pass: the *model* is correct for these data
+(the package's test suite verifies the sampler against exact enumerable
+posteriors), the *chains* are simply too short. This is the expected
+behaviour of the MH-within-Gibbs sampler as $d$ grows — the paper's
+production runs use long, heavily thinned chains (e.g. thinning by 25)
+precisely because of this autocorrelation, and the ESS-per-second plot is
+the tool for budgeting such runs:
+
+```{r}
+plot(fit_m, type = "ess_time")
+```
+
+The coefficient-error heat map shows the estimation error concentrated in a
+few coordinates rather than spread uniformly — the signature of incomplete
+mixing rather than model bias:
+
+```{r, fig.height = 4}
+plot(fit_m, type = "beta_diff", beta = sim_m$beta)
+```
+
+Even with short chains, ignoring the matching constraints costs far more
+than the remaining Monte Carlo error. The unconstrained baseline mixes fast
+(it is a conjugate Gibbs sampler) but converges to the wrong posterior:
+
+```{r}
+bm_m <- crr_benchmark(sim_m$Y, sim_m$X, con_match, beta = sim_m$beta,
+                      n_iter = 3000, warmup = 1500, seed = 7)
+bm_m
+```
+
+For production use on problems of this size, budget chain length from the
+ESS-per-second numbers above and rerun with `n_iter` and `thin` increased
+until the report's Rhat and ESS warnings disappear — convergence at this
+dimension takes tens of thousands of iterations, which is why the report's
+warnings, rather than the raw fit statistics, should drive that decision.
