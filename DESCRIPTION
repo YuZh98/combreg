@@ -27,5 +27,5 @@ Suggests:
     rmarkdown
 Config/testthat/edition: 3
 VignetteBuilder: knitr
-URL: https://github.com/YuZh98/combr
-BugReports: https://github.com/YuZh98/combr/issues
+URL: https://github.com/YuZh98/combreg
+BugReports: https://github.com/YuZh98/combreg/issues

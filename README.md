@@ -9,7 +9,7 @@ The package implements the Metropolis–Hastings-within-Gibbs sampler with dual-
 
 ```r
 # install.packages("remotes")
-remotes::install_github("YuZh98/combr")
+remotes::install_github("YuZh98/combreg")
 ```
 
 ## Quick start

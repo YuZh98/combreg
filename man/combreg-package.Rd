@@ -11,8 +11,8 @@ Bayesian posterior sampling for regression models whose response is an integer-v
 \seealso{
 Useful links:
 \itemize{
-  \item \url{https://github.com/YuZh98/combr}
-  \item Report bugs at \url{https://github.com/YuZh98/combr/issues}
+  \item \url{https://github.com/YuZh98/combreg}
+  \item Report bugs at \url{https://github.com/YuZh98/combreg/issues}
 }
 
 }
