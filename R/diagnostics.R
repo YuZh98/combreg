@@ -48,33 +48,140 @@ crr_rhat <- function(object) {
   out
 }
 
-#' MCMC and regression diagnostics report
+#' Posterior predictive goodness-of-fit checks
 #'
-#' Assembles a structured diagnostics report for a fitted model: per-parameter
-#' posterior summaries with effective sample sizes, sampling efficiency
-#' (ESS per second), split-Rhat convergence diagnostics, MH acceptance rates,
-#' and in-sample regression fit (exact-match and per-coordinate accuracy of
-#' the fitted responses). Potential problems (low ESS, high Rhat, low
-#' acceptance) are collected as warnings and flagged by `print()`.
+#' Simulates replicated response matrices from the posterior predictive
+#' distribution (draw \eqn{\beta} from the retained draws, draw
+#' \eqn{\zeta = X\beta + \varepsilon}, map each row to its feasible
+#' maximizer) and compares observed test statistics against their predictive
+#' distribution. Statistics: the exact-match rate and per-coordinate accuracy
+#' of the point predictor `fitted(object)` applied to each replicate, and the
+#' per-coordinate marginal response frequencies.
+#'
+#' Point-prediction accuracy is bounded by the intrinsic utility noise, so a
+#' low raw exact-match rate does not by itself indicate misfit: the model
+#' fits well when the *observed* statistics are typical of the predictive
+#' distribution (two-sided p-values away from 0). Constrained fits require
+#' the 'lpSolve' package.
 #'
 #' @param object A `crr_fit` object.
-#' @param prob Central posterior interval probability for the summary table.
+#' @param n_rep Number of posterior predictive replicates.
+#' @param seed Optional integer seed.
 #'
-#' @return An object of class `crr_diagnostics`: a list with elements
-#'   `table` (per-parameter data frame with columns `mean`, `sd`, interval
-#'   bounds, `ess`, `ess_per_sec`, `rhat`), `fit_stats` (exact-match rate and
-#'   per-coordinate accuracy, or `NULL` if fitted responses are unavailable),
-#'   `warnings` (character vector), and the sampler configuration.
+#' @return An object of class `crr_ppc`: a list with `observed` (named
+#'   statistic vector), `replicated` (`n_rep` x n_stats matrix), `p_value`
+#'   (two-sided predictive p-values per statistic), and `n_rep`.
 #'
 #' @examples
 #' con <- crr_constraints(rbind(c(1, 1, 0), c(0, 1, 1)), b = c(1, 1))
 #' sim <- simulate_crr(n = 50, p = 2, constraints = con, seed = 1)
 #' fit <- crr(sim$Y, sim$X, con, n_iter = 200, warmup = 100, seed = 1)
-#' crr_diagnostics(fit)
+#' crr_ppc(fit, n_rep = 20, seed = 1)
 #'
 #' @export
-crr_diagnostics <- function(object, prob = 0.95) {
-  stopifnot(inherits(object, "crr_fit"), prob > 0, prob < 1)
+crr_ppc <- function(object, n_rep = 50, seed = NULL) {
+  stopifnot(inherits(object, "crr_fit"), n_rep >= 1)
+  if (!is.null(seed)) set.seed(seed)
+
+  dr <- kept_draws(object)
+  flat <- matrix(dr, prod(dim(dr)[1:2]), dim(dr)[3])
+  Y_hat <- fitted(object)
+  n <- object$n; d <- object$d; p <- object$p
+  X <- object$X
+
+  stat_names <- c("exact_match",
+                  paste0("accuracy[", seq_len(d), "]"),
+                  paste0("marginal_freq[", seq_len(d), "]"))
+  stats_of <- function(Y) {
+    c(mean(rowSums(Y != Y_hat) == 0), colMeans(Y == Y_hat), colMeans(Y))
+  }
+
+  observed <- stats_of(object$Y)
+  idx <- sample.int(nrow(flat), min(n_rep, nrow(flat)))
+  replicated <- t(vapply(idx, function(m) {
+    beta_m <- matrix(flat[m, ], p, d)
+    zeta <- X %*% beta_m + matrix(rnorm(n * d), n, d)
+    Y_rep <- if (is.null(object$constraints)) {
+      (zeta > 0) * 1
+    } else {
+      t(apply(zeta, 1, ilp_argmax, constraints = object$constraints))
+    }
+    stats_of(Y_rep)
+  }, numeric(length(stat_names))))
+  colnames(replicated) <- stat_names
+  names(observed) <- stat_names
+
+  p_value <- vapply(stat_names, function(s) {
+    ge <- mean(replicated[, s] >= observed[s])
+    le <- mean(replicated[, s] <= observed[s])
+    min(1, 2 * min(ge, le))
+  }, numeric(1))
+
+  structure(
+    list(observed = observed, replicated = replicated,
+         p_value = p_value, n_rep = length(idx)),
+    class = "crr_ppc"
+  )
+}
+
+#' @export
+print.crr_ppc <- function(x, digits = 3, ...) {
+  cat("<crr_ppc>: ", x$n_rep, " posterior predictive replicates\n", sep = "")
+  print(ppc_table(x, digits), row.names = FALSE)
+  invisible(x)
+}
+
+ppc_table <- function(x, digits = 3) {
+  q <- apply(x$replicated, 2, stats::quantile, c(0.05, 0.95))
+  data.frame(
+    statistic = names(x$observed),
+    observed = signif(x$observed, digits),
+    pred_mean = signif(colMeans(x$replicated), digits),
+    pred_q5 = signif(q[1, ], digits),
+    pred_q95 = signif(q[2, ], digits),
+    p_value = signif(x$p_value, digits),
+    row.names = NULL
+  )
+}
+
+#' MCMC and regression diagnostics report
+#'
+#' Assembles a structured diagnostics report for a fitted model: per-parameter
+#' posterior summaries with effective sample sizes, sampling efficiency
+#' (ESS per second), split-Rhat convergence diagnostics, MH acceptance rates,
+#' in-sample regression fit (exact-match and per-coordinate accuracy of the
+#' fitted responses), and posterior predictive goodness-of-fit checks that
+#' calibrate the fit statistics against what the model itself predicts (see
+#' [crr_ppc()]). When the true coefficients are known (simulation), supplying
+#' `beta` adds estimation error (RMSE) and interval coverage. Potential
+#' problems (low ESS, high Rhat, low acceptance, extreme predictive p-values)
+#' are collected as warnings and flagged by `print()`.
+#'
+#' @param object A `crr_fit` object.
+#' @param beta Optional true coefficient matrix (`p` x `d`), e.g. from
+#'   [simulate_crr()].
+#' @param prob Central posterior interval probability for the summary table.
+#' @param n_rep Posterior predictive replicates for the goodness-of-fit
+#'   checks; set to `0` to skip them.
+#'
+#' @return An object of class `crr_diagnostics`: a list with elements
+#'   `table` (per-parameter data frame with columns `mean`, `sd`, interval
+#'   bounds, `ess`, `ess_per_sec`, `rhat`), `fit_stats` (exact-match rate and
+#'   per-coordinate accuracy, or `NULL` if fitted responses are unavailable),
+#'   `ppc` (a [crr_ppc] object, or `NULL` if skipped/unavailable), `truth`
+#'   (RMSE, coverage, and the error matrix `coef(object) - beta`, or `NULL`
+#'   if `beta` was not supplied), `warnings` (character vector), and the
+#'   sampler configuration.
+#'
+#' @examples
+#' con <- crr_constraints(rbind(c(1, 1, 0), c(0, 1, 1)), b = c(1, 1))
+#' sim <- simulate_crr(n = 50, p = 2, constraints = con, seed = 1)
+#' fit <- crr(sim$Y, sim$X, con, n_iter = 200, warmup = 100, seed = 1)
+#' crr_diagnostics(fit, beta = sim$beta, n_rep = 20)
+#'
+#' @export
+crr_diagnostics <- function(object, beta = NULL, prob = 0.95, n_rep = 50) {
+  stopifnot(inherits(object, "crr_fit"), prob > 0, prob < 1, n_rep >= 0)
 
   dr <- kept_draws(object)
   flat <- matrix(dr, prod(dim(dr)[1:2]), dim(dr)[3],
@@ -104,6 +211,23 @@ crr_diagnostics <- function(object, prob = 0.95) {
     )
   }, error = function(e) NULL)
 
+  ppc <- if (n_rep >= 1 && !is.null(fit_stats)) {
+    tryCatch(crr_ppc(object, n_rep = n_rep), error = function(e) NULL)
+  }
+
+  truth <- NULL
+  if (!is.null(beta)) {
+    beta <- as.matrix(beta)
+    stopifnot(nrow(beta) == object$p, ncol(beta) == object$d)
+    truth_vec <- as.vector(beta)
+    truth <- list(
+      beta = beta,
+      error = coef(object) - beta,
+      rmse = sqrt(mean((as.vector(coef(object)) - truth_vec)^2)),
+      coverage = mean(tab$lower <= truth_vec & truth_vec <= tab$upper)
+    )
+  }
+
   warnings <- character()
   bad_rhat <- tab$parameter[!is.na(tab$rhat) & tab$rhat > 1.05]
   if (length(bad_rhat)) {
@@ -128,11 +252,23 @@ crr_diagnostics <- function(object, prob = 0.95) {
       "); consider more iterations or a smaller zeta_block"
     ))
   }
+  if (!is.null(ppc)) {
+    bad_ppc <- names(ppc$p_value)[ppc$p_value < 0.05]
+    if (length(bad_ppc)) {
+      warnings <- c(warnings, paste0(
+        "posterior predictive p-value < 0.05 for: ",
+        paste(bad_ppc, collapse = ", "),
+        " (observed data atypical of the fitted model)"
+      ))
+    }
+  }
 
   structure(
     list(
       table = tab,
       fit_stats = fit_stats,
+      ppc = ppc,
+      truth = truth,
       warnings = warnings,
       prob = prob,
       method = object$method, kernel = object$kernel,
@@ -199,6 +335,26 @@ print.crr_diagnostics <- function(x, digits = 3, max_rows = 20, ...) {
         paste(format(x$fit_stats$coordinate_accuracy, digits = digits),
               collapse = " "),
         "\n", sep = "")
+    cat("  note: accuracy is bounded by the intrinsic utility noise;",
+        " judge fit by the\n  posterior predictive checks below,",
+        " not by the raw rates.\n", sep = "")
+  }
+
+  if (!is.null(x$ppc)) {
+    rule(paste0("Posterior predictive checks (", x$ppc$n_rep,
+                " replicates)"))
+    print(ppc_table(x$ppc, digits), row.names = FALSE)
+    if (all(x$ppc$p_value >= 0.05)) {
+      cat("  all observed statistics are typical of the fitted model\n")
+    }
+  }
+
+  if (!is.null(x$truth)) {
+    rule("Estimation vs known truth")
+    cat("  RMSE(beta): ", format(x$truth$rmse, digits = digits),
+        "\n", sep = "")
+    cat("  ", 100 * x$prob, "% interval coverage: ",
+        format(x$truth$coverage, digits = digits), "\n", sep = "")
   }
 
   rule("Warnings")

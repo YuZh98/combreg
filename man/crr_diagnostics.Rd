@@ -4,32 +4,45 @@
 \alias{crr_diagnostics}
 \title{MCMC and regression diagnostics report}
 \usage{
-crr_diagnostics(object, prob = 0.95)
+crr_diagnostics(object, beta = NULL, prob = 0.95, n_rep = 50)
 }
 \arguments{
 \item{object}{A \code{crr_fit} object.}
 
+\item{beta}{Optional true coefficient matrix (\code{p} x \code{d}), e.g. from
+\code{\link[=simulate_crr]{simulate_crr()}}.}
+
 \item{prob}{Central posterior interval probability for the summary table.}
+
+\item{n_rep}{Posterior predictive replicates for the goodness-of-fit
+checks; set to \code{0} to skip them.}
 }
 \value{
 An object of class \code{crr_diagnostics}: a list with elements
 \code{table} (per-parameter data frame with columns \code{mean}, \code{sd}, interval
 bounds, \code{ess}, \code{ess_per_sec}, \code{rhat}), \code{fit_stats} (exact-match rate and
 per-coordinate accuracy, or \code{NULL} if fitted responses are unavailable),
-\code{warnings} (character vector), and the sampler configuration.
+\code{ppc} (a \link{crr_ppc} object, or \code{NULL} if skipped/unavailable), \code{truth}
+(RMSE, coverage, and the error matrix \code{coef(object) - beta}, or \code{NULL}
+if \code{beta} was not supplied), \code{warnings} (character vector), and the
+sampler configuration.
 }
 \description{
 Assembles a structured diagnostics report for a fitted model: per-parameter
 posterior summaries with effective sample sizes, sampling efficiency
 (ESS per second), split-Rhat convergence diagnostics, MH acceptance rates,
-and in-sample regression fit (exact-match and per-coordinate accuracy of
-the fitted responses). Potential problems (low ESS, high Rhat, low
-acceptance) are collected as warnings and flagged by \code{print()}.
+in-sample regression fit (exact-match and per-coordinate accuracy of the
+fitted responses), and posterior predictive goodness-of-fit checks that
+calibrate the fit statistics against what the model itself predicts (see
+\code{\link[=crr_ppc]{crr_ppc()}}). When the true coefficients are known (simulation), supplying
+\code{beta} adds estimation error (RMSE) and interval coverage. Potential
+problems (low ESS, high Rhat, low acceptance, extreme predictive p-values)
+are collected as warnings and flagged by \code{print()}.
 }
 \examples{
 con <- crr_constraints(rbind(c(1, 1, 0), c(0, 1, 1)), b = c(1, 1))
 sim <- simulate_crr(n = 50, p = 2, constraints = con, seed = 1)
 fit <- crr(sim$Y, sim$X, con, n_iter = 200, warmup = 100, seed = 1)
-crr_diagnostics(fit)
+crr_diagnostics(fit, beta = sim$beta, n_rep = 20)
 
 }

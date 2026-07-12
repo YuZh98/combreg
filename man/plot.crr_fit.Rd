@@ -7,7 +7,8 @@
 \method{plot}{crr_fit}(
   x,
   pars = NULL,
-  type = c("trace", "acf", "violin", "ess", "ess_time", "residual"),
+  type = c("trace", "acf", "violin", "ess", "ess_time", "residual", "beta_diff"),
+  beta = NULL,
   ...
 )
 }
@@ -16,9 +17,12 @@
 
 \item{pars}{Character vector of parameter names (e.g. \code{"beta[1,2]"}).
 Defaults to the first four parameters for \code{"trace"}/\code{"acf"} and all
-parameters otherwise. Ignored for \code{"residual"}.}
+parameters otherwise. Ignored for \code{"residual"} and \code{"beta_diff"}.}
 
 \item{type}{Plot type; see Details.}
+
+\item{beta}{True coefficient matrix (\code{p} x \code{d}); required for
+\code{type = "beta_diff"}.}
 
 \item{...}{Passed to the underlying base plotting functions.}
 }
@@ -41,5 +45,9 @@ the efficiency measure used for method comparison in the paper.
 \item \code{"residual"}: heat map of the training residuals \code{Y - fitted(x)}
 (entries in \{-1, 0, 1\}); rows are observations, columns response
 coordinates.
+\item \code{"beta_diff"}: heat map of the coefficient estimation error
+\code{coef(x) - beta} against a known true coefficient matrix (supplied via
+\code{beta}, e.g. from \code{\link[=simulate_crr]{simulate_crr()}}), with the error printed in each
+cell.
 }
 }

@@ -12,6 +12,7 @@ RoxygenNote: 7.3.3
 Imports:
     Rcpp,
     coda,
+    grDevices,
     graphics,
     stats,
     truncnorm,

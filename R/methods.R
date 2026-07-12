@@ -77,12 +77,18 @@ coef.crr_fit <- function(object, ...) {
 #' - `"residual"`: heat map of the training residuals `Y - fitted(x)`
 #'   (entries in \{-1, 0, 1\}); rows are observations, columns response
 #'   coordinates.
+#' - `"beta_diff"`: heat map of the coefficient estimation error
+#'   `coef(x) - beta` against a known true coefficient matrix (supplied via
+#'   `beta`, e.g. from [simulate_crr()]), with the error printed in each
+#'   cell.
 #'
 #' @param x A `crr_fit` object.
 #' @param pars Character vector of parameter names (e.g. `"beta[1,2]"`).
 #'   Defaults to the first four parameters for `"trace"`/`"acf"` and all
-#'   parameters otherwise. Ignored for `"residual"`.
+#'   parameters otherwise. Ignored for `"residual"` and `"beta_diff"`.
 #' @param type Plot type; see Details.
+#' @param beta True coefficient matrix (`p` x `d`); required for
+#'   `type = "beta_diff"`.
 #' @param ... Passed to the underlying base plotting functions.
 #'
 #' @return `x`, invisibly.
@@ -90,7 +96,8 @@ coef.crr_fit <- function(object, ...) {
 #' @export
 plot.crr_fit <- function(x, pars = NULL,
                          type = c("trace", "acf", "violin", "ess",
-                                  "ess_time", "residual"),
+                                  "ess_time", "residual", "beta_diff"),
+                         beta = NULL,
                          ...) {
   type <- match.arg(type)
   dr <- kept_draws(x)
@@ -112,7 +119,8 @@ plot.crr_fit <- function(x, pars = NULL,
     violin = plot_violin(dr, pars, all_pars, ...),
     ess = plot_ess(x, pars, per_second = FALSE, ...),
     ess_time = plot_ess(x, pars, per_second = TRUE, ...),
-    residual = plot_residual(x, ...)
+    residual = plot_residual(x, ...),
+    beta_diff = plot_beta_diff(x, beta, ...)
   )
   invisible(x)
 }
@@ -173,6 +181,34 @@ plot_ess <- function(x, pars, per_second, ...) {
                            ...)
   if (!per_second) graphics::abline(h = 100, lty = 2, col = "red")
   invisible(mid)
+}
+
+plot_beta_diff <- function(x, beta, ...) {
+  if (is.null(beta)) {
+    stop("type = \"beta_diff\" requires the true coefficient matrix ",
+         "via the beta argument", call. = FALSE)
+  }
+  beta <- as.matrix(beta)
+  if (nrow(beta) != x$p || ncol(beta) != x$d) {
+    stop("beta must be a ", x$p, " x ", x$d, " matrix", call. = FALSE)
+  }
+  err <- coef(x) - beta
+  lim <- max(abs(err), 1e-12)
+  pal <- grDevices::colorRampPalette(c("#2166AC", "grey95", "#B2182B"))(64)
+
+  graphics::image(seq_len(x$d), seq_len(x$p), t(err),
+                  zlim = c(-lim, lim), col = pal,
+                  xlab = "response coordinate j", ylab = "covariate k",
+                  main = "Coefficient error  beta_hat - beta",
+                  axes = FALSE, ...)
+  graphics::axis(1, at = seq_len(x$d))
+  graphics::axis(2, at = seq_len(x$p))
+  graphics::box()
+  for (k in seq_len(x$p)) {
+    for (j in seq_len(x$d)) {
+      graphics::text(j, k, signif(err[k, j], 2), cex = 0.8)
+    }
+  }
 }
 
 plot_residual <- function(x, ...) {

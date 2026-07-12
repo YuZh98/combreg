@@ -52,7 +52,7 @@ crr_benchmark <- function(Y, X, constraints,
 
   rows <- lapply(methods, function(mth) {
     fit <- fits[[mth]]
-    diag <- crr_diagnostics(fit, prob = prob)
+    diag <- crr_diagnostics(fit, prob = prob, n_rep = 0)
     tab <- diag$table
     row <- data.frame(
       method = mth,

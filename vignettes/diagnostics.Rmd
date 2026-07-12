@@ -33,7 +33,7 @@ con <- crr_constraints(A, b = c(1, 1))
 sim <- simulate_crr(n = 300, p = 2, constraints = con, seed = 42)
 
 fit <- crr(sim$Y, sim$X, con,
-           n_iter = 2000, warmup = 1000, chains = 2, seed = 42)
+           n_iter = 4000, warmup = 2000, chains = 2, seed = 42)
 fit
 ```
 
@@ -41,17 +41,35 @@ fit
 
 `crr_diagnostics()` assembles everything needed to judge a run in one
 object: per-coefficient posterior summaries, effective sample sizes (total
-and per second of sampling), split-Rhat, MH acceptance, and in-sample
-regression fit. Potential problems (Rhat above 1.05, ESS below 100, very low
-acceptance) are collected as warnings.
+and per second of sampling), split-Rhat, MH acceptance, in-sample regression
+fit, and posterior predictive goodness-of-fit checks. In simulation the true
+coefficients are known, so passing `beta` additionally reports estimation
+error (RMSE) and posterior-interval coverage. Potential problems (Rhat above
+1.05, ESS below 100, very low acceptance, extreme predictive p-values) are
+collected as warnings.
 
 ```{r}
-report <- crr_diagnostics(fit)
+report <- crr_diagnostics(fit, beta = sim$beta)
 report
 ```
 
-The underlying per-parameter table is available as `report$table` for
-programmatic use.
+The underlying per-parameter table is available as `report$table`, and the
+predictive-check object as `report$ppc`.
+
+### Reading the goodness-of-fit checks
+
+The raw exact-match and accuracy rates are *not* by themselves evidence for
+or against the model: the response is the maximizer of a noisy utility, so
+even the true $\beta$ cannot predict $y_i$ perfectly — point-prediction
+accuracy is bounded by the intrinsic noise. The posterior predictive checks
+calibrate this. Each replicate re-simulates responses from the fitted model
+and recomputes the fit statistics; the model is adequate when the observed
+statistics are typical of that distribution (two-sided p-values away from
+0). Here the observed exact-match rate sits in the middle of its predictive
+distribution — the seemingly modest rate is exactly what a *correct* model
+predicts for this noise level, and the RMSE and coverage against the known
+truth confirm accurate estimation. `crr_ppc()` runs the checks standalone
+with more replicates if needed.
 
 ## Plotting methods
 
@@ -84,6 +102,13 @@ Residual heat map of the posterior point-estimate fit
 
 ```{r, fig.height = 5.5}
 plot(fit, type = "residual")
+```
+
+When the truth is known, the coefficient estimation error
+$\hat\beta - \beta$ as a heat map:
+
+```{r}
+plot(fit, type = "beta_diff", beta = sim$beta)
 ```
 
 For anything beyond these built-ins, convert the draws with
