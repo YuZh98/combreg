@@ -2,16 +2,9 @@ Package: combreg
 Type: Package
 Title: Bayesian Regression for Combinatorial Response Data
 Version: 0.1.0
-Authors@R: person("Yu", "Zheng", email = "seanzhengyu1@gmail.com",
+Authors@R: person("Hugh", "Zheng", email = "hugh.stats@gmail.com",
     role = c("aut", "cre"))
-Description: Bayesian posterior sampling for regression models whose response
-    is an integer-valued vector constrained to a polytope defined by a totally
-    unimodular system, as in matching and assignment problems. Implements the
-    Metropolis-Hastings-within-Gibbs sampler with dual-variable augmentation
-    of Zheng et al., with hit-and-run updates for the dual certificates
-    accelerated in 'C++', an unconstrained probit baseline for comparison, and
-    utilities for constraint validation (total unimodularity, feasibility)
-    and data simulation.
+Description: Bayesian posterior sampling for regression models whose response is an integer-valued vector subject to combinatorial constraints such as matching data. Implements the Metropolis-Hastings-within-Gibbs sampler with dual-variable augmentation of Zheng et al., an unconstrained probit baseline for comparison, and utilities for constraint validation (total unimodularity, feasibility) and data simulation.
 License: MIT + file LICENSE
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)

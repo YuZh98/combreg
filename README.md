@@ -1,14 +1,9 @@
 # combreg
 
 Bayesian regression for combinatorial response data: responses are binary
-vectors constrained to a polytope `{y ∈ {0,1}^d : Ay ≤ b}` with totally
-unimodular `A` (matchings, assignments, and related structures).
+vectors constrained to an integral polyhedron $\{y\in\{0,1\}^d:Ay\le b\}$.
 
-The package implements the Metropolis–Hastings-within-Gibbs sampler with
-dual-certificate augmentation from *Statistical Modeling of Combinatorial
-Response Data*, with hit-and-run dual updates in C++ (OpenMP-parallel across
-observations), an unconstrained probit baseline, and utilities for constraint
-validation and data simulation.
+The package implements the Metropolis–Hastings-within-Gibbs sampler with dual-certificate augmentation from [Statistical Modeling of Combinatorial Response Data](https://arxiv.org/abs/2504.11630), with hit-and-run dual updates in C++ (OpenMP-parallel across observations), an unconstrained probit baseline, and utilities for constraint validation and data simulation.
 
 ## Installation
 
@@ -42,4 +37,4 @@ primitives.
 
 ## License
 
-MIT © Yu Zheng
+MIT © Hugh Zheng
