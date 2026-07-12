@@ -1,0 +1,110 @@
+---
+title: "Introduction to combreg"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Introduction to combreg}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(collapse = TRUE, comment = "#>", fig.width = 7)
+has_lpsolve <- requireNamespace("lpSolve", quietly = TRUE)
+```
+
+## The model
+
+`combreg` fits Bayesian regression models whose response is a binary vector
+constrained to a polytope,
+
+$$\mathcal{Y} = \{\, y \in \{0,1\}^d : A y \le b \,\},$$
+
+with $A$ an integer, totally unimodular constraint matrix. Examples include
+matchings, assignments, and other combinatorial structures. Each observation
+has a latent Gaussian utility
+
+$$\zeta_i = \beta^\top x_i + \varepsilon_i, \qquad
+\varepsilon_i \sim N(0, I_d),$$
+
+and the observed response is the feasible utility maximizer
+
+$$y_i = \arg\max_{y \in \mathcal{Y}} \; \zeta_i^\top y.$$
+
+Posterior sampling uses a Metropolis–Hastings-within-Gibbs scheme on an
+augmented posterior in which each observation carries a dual certificate
+$u_i \ge 0$ of the optimality of $y_i$; the dual updates use hit-and-run
+sampling implemented in C++.
+
+## Defining constraints
+
+Constraints are declared once and validated (including an exhaustive total
+unimodularity check for small systems):
+
+```{r}
+library(combreg)
+
+A <- rbind(
+  c(1, 1, 0),
+  c(0, 1, 1)
+)
+con <- crr_constraints(A, b = c(1, 1))
+con
+```
+
+`is_tum()` and `is_feasible()` are available as standalone utilities.
+
+## Simulating data and fitting
+
+`simulate_crr()` draws covariates, coefficients, and utilities, and maps each
+utility vector to its constrained maximizer by integer programming (this
+requires the `lpSolve` package):
+
+```{r, eval = has_lpsolve}
+sim <- simulate_crr(n = 300, p = 2, constraints = con, seed = 1)
+head(sim$Y)
+```
+
+```{r, eval = has_lpsolve}
+fit <- crr(sim$Y, sim$X, con,
+           kernel = "exponential",
+           n_iter = 1500, warmup = 500, seed = 1)
+fit
+```
+
+Posterior summaries and diagnostics:
+
+```{r, eval = has_lpsolve}
+head(summary(fit))
+plot(fit, pars = c("beta[1,1]", "beta[2,1]"))
+```
+
+Draws convert directly to the `coda` ecosystem via `coda::as.mcmc(fit)`, and
+to `posterior::draws_array` via `posterior::as_draws(fit)`.
+
+## Why constraints matter
+
+Ignoring the constraint structure biases estimation. The `"unconstrained"`
+method fits independent Albert–Chib probit regressions per coordinate — a
+natural but wrong model for constrained responses:
+
+```{r, eval = has_lpsolve}
+fit_un <- crr(sim$Y, sim$X, method = "unconstrained",
+              n_iter = 1500, warmup = 500, seed = 1)
+
+rmse <- function(est, truth) sqrt(mean((est - truth)^2))
+c(constrained   = rmse(coef(fit), sim$beta),
+  unconstrained = rmse(coef(fit_un), sim$beta))
+```
+
+The constrained sampler recovers $\beta$ markedly better because the
+likelihood correctly conditions on $y_i$ being the feasible maximizer rather
+than a vector of independent signs.
+
+## Building custom models from primitives
+
+Models with structured (non-linear-in-$X$) means can reuse the exported
+primitives — `init_dual()`, `sample_dual()`, `draw_utility()`,
+`sample_utility()`, `dual_feasible()`, `coef_precompute()`, `update_coef()` —
+and supply their own coefficient updates, so that no constraint logic needs
+to be reimplemented. See their reference pages for the exact conditional
+distributions.
