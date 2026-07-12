@@ -6,18 +6,18 @@
 \alias{combreg-package}
 \title{combreg: Bayesian Regression for Combinatorial Response Data}
 \description{
-Bayesian posterior sampling for regression models whose response is an integer-valued vector constrained to a polytope defined by a totally unimodular system, as in matching and assignment problems. Implements the Metropolis-Hastings-within-Gibbs sampler with dual-variable augmentation of Zheng et al., with hit-and-run updates for the dual certificates accelerated in 'C++', an unconstrained probit baseline for comparison, and utilities for constraint validation (total unimodularity, feasibility) and data simulation.
+Bayesian posterior sampling for regression models whose response is an integer-valued vector subject to combinatorial constraints such as matching data. Implements the Metropolis-Hastings-within-Gibbs sampler with dual-variable augmentation of Zheng et al., an unconstrained probit baseline for comparison, benchmarking helpers, MCMC and regression diagnostics (effective sample sizes, split-Rhat, structured reports), plotting methods (trace, autocorrelation, violin, effective-sample-size, sampling-efficiency, residual heat map), and utilities for constraint validation (total unimodularity, feasibility) and data simulation.
 }
 \seealso{
 Useful links:
 \itemize{
-  \item \url{https://github.com/YuZh98/combreg}
-  \item Report bugs at \url{https://github.com/YuZh98/combreg/issues}
+  \item \url{https://github.com/YuZh98/combr}
+  \item Report bugs at \url{https://github.com/YuZh98/combr/issues}
 }
 
 }
 \author{
-\strong{Maintainer}: Yu Zheng \email{seanzhengyu1@gmail.com}
+\strong{Maintainer}: Hugh Zheng \email{hugh.stats@gmail.com}
 
 }
 \keyword{internal}

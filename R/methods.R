@@ -62,29 +62,62 @@ coef.crr_fit <- function(object, ...) {
   matrix(colMeans(flat), object$p, object$d)
 }
 
-#' Trace and autocorrelation plots
+#' Diagnostic plots for a crr fit
 #'
-#' Plots post-warmup traces (and optionally autocorrelations) for a subset of
-#' coefficients.
+#' All plots use post-warmup thinned draws.
+#'
+#' - `"trace"`: per-parameter trace plots, chains overlaid.
+#' - `"acf"`: per-parameter autocorrelation functions (chains pooled).
+#' - `"violin"`: violin plot of the marginal posterior of each coefficient,
+#'   with median and central 95% interval.
+#' - `"ess"`: effective sample size per coefficient, with a dashed reference
+#'   line at 100.
+#' - `"ess_time"`: effective sample size per second of sampling time —
+#'   the efficiency measure used for method comparison in the paper.
+#' - `"residual"`: heat map of the training residuals `Y - fitted(x)`
+#'   (entries in \{-1, 0, 1\}); rows are observations, columns response
+#'   coordinates.
 #'
 #' @param x A `crr_fit` object.
-#' @param pars Character vector of parameter names (e.g. `"beta[1,2]"`), or
-#'   `NULL` for the first four.
-#' @param type `"trace"` or `"acf"`.
-#' @param ... Passed to the base plotting functions.
+#' @param pars Character vector of parameter names (e.g. `"beta[1,2]"`).
+#'   Defaults to the first four parameters for `"trace"`/`"acf"` and all
+#'   parameters otherwise. Ignored for `"residual"`.
+#' @param type Plot type; see Details.
+#' @param ... Passed to the underlying base plotting functions.
 #'
 #' @return `x`, invisibly.
 #'
 #' @export
-plot.crr_fit <- function(x, pars = NULL, type = c("trace", "acf"), ...) {
-  type <- type[1]
+plot.crr_fit <- function(x, pars = NULL,
+                         type = c("trace", "acf", "violin", "ess",
+                                  "ess_time", "residual"),
+                         ...) {
+  type <- match.arg(type)
   dr <- kept_draws(x)
   all_pars <- dimnames(dr)[[3]]
-  if (is.null(pars)) pars <- all_pars[seq_len(min(4, length(all_pars)))]
+  if (is.null(pars)) {
+    pars <- if (type %in% c("trace", "acf")) {
+      all_pars[seq_len(min(4, length(all_pars)))]
+    } else {
+      all_pars
+    }
+  }
   bad <- setdiff(pars, all_pars)
   if (length(bad)) stop("Unknown parameters: ", paste(bad, collapse = ", "),
                         call. = FALSE)
 
+  switch(type,
+    trace = ,
+    acf = plot_panels(dr, pars, all_pars, type, ...),
+    violin = plot_violin(dr, pars, all_pars, ...),
+    ess = plot_ess(x, pars, per_second = FALSE, ...),
+    ess_time = plot_ess(x, pars, per_second = TRUE, ...),
+    residual = plot_residual(x, ...)
+  )
+  invisible(x)
+}
+
+plot_panels <- function(dr, pars, all_pars, type, ...) {
   old_par <- graphics::par(no.readonly = TRUE)
   on.exit(graphics::par(old_par))
   nr <- ceiling(length(pars) / 2)
@@ -100,7 +133,63 @@ plot.crr_fit <- function(x, pars = NULL, type = c("trace", "acf"), ...) {
       stats::acf(as.vector(dr[, , idx]), main = paste("ACF:", pn), ...)
     }
   }
-  invisible(x)
+}
+
+plot_violin <- function(dr, pars, all_pars, ...) {
+  k <- length(pars)
+  idx <- match(pars, all_pars)
+  vals <- lapply(idx, function(i) as.vector(dr[, , i]))
+
+  graphics::plot(NA, xlim = c(0.5, k + 0.5), ylim = range(unlist(vals)),
+                 xaxt = "n", xlab = "", ylab = "coefficient",
+                 main = "Posterior distributions", ...)
+  graphics::axis(1, at = seq_len(k), labels = pars, las = 2, cex.axis = 0.8)
+  graphics::abline(h = 0, lty = 3, col = "grey60")
+
+  for (i in seq_len(k)) {
+    v <- vals[[i]]
+    den <- stats::density(v)
+    w <- 0.4 * den$y / max(den$y)
+    graphics::polygon(c(i - w, rev(i + w)), c(den$x, rev(den$x)),
+                      col = "grey85", border = "grey40")
+    q <- stats::quantile(v, c(0.025, 0.5, 0.975))
+    graphics::segments(i, q[1], i, q[3], lwd = 2)
+    graphics::points(i, q[2], pch = 19)
+  }
+}
+
+plot_ess <- function(x, pars, per_second, ...) {
+  ess <- crr_ess(x)[pars]
+  ylab <- "effective sample size"
+  if (per_second) {
+    total_time <- sum(x$timing)
+    if (total_time <= 0) stop("No recorded sampling time", call. = FALSE)
+    ess <- ess / total_time
+    ylab <- "effective sample size per second"
+  }
+  mid <- graphics::barplot(ess, las = 2, cex.names = 0.8, ylab = ylab,
+                           main = if (per_second) "Sampling efficiency"
+                                  else "Effective sample sizes",
+                           ...)
+  if (!per_second) graphics::abline(h = 100, lty = 2, col = "red")
+  invisible(mid)
+}
+
+plot_residual <- function(x, ...) {
+  res <- stats::residuals(x)
+  n <- nrow(res)
+  d <- ncol(res)
+  graphics::image(seq_len(d), seq_len(n), t(res),
+                  breaks = c(-1.5, -0.5, 0.5, 1.5),
+                  col = c("#2166AC", "grey95", "#B2182B"),
+                  xlab = "response coordinate", ylab = "observation",
+                  main = "Residuals  y - y_hat", axes = FALSE, ...)
+  graphics::axis(1, at = seq_len(d))
+  graphics::axis(2)
+  graphics::box()
+  graphics::legend("topright", legend = c("-1", "0", "+1"),
+                   fill = c("#2166AC", "grey95", "#B2182B"),
+                   bg = "white", cex = 0.8)
 }
 
 #' Posterior predictions
@@ -109,9 +198,11 @@ plot.crr_fit <- function(x, pars = NULL, type = c("trace", "acf"), ...) {
 #' @param newdata Covariate matrix (`n_new` x `p`); defaults to the training
 #'   covariates.
 #' @param type `"utility"` returns posterior-mean latent utilities
-#'   \eqn{X \hat\beta}; `"response"` additionally maps each utility row to
-#'   its constrained maximizer via integer programming (requires the
-#'   'lpSolve' package and a fit with constraints).
+#'   \eqn{X \hat\beta}; `"response"` additionally maps each utility row to a
+#'   feasible response — the constrained maximizer via integer programming
+#'   for constrained fits (requires the 'lpSolve' package), or the
+#'   coordinatewise sign indicator \eqn{1\{x^\top\hat\beta > 0\}} for
+#'   `method = "unconstrained"` fits.
 #' @param ... Unused.
 #'
 #' @return Matrix (`n_new` x `d`) of utilities or feasible responses.
@@ -128,7 +219,7 @@ predict.crr_fit <- function(object, newdata = NULL,
   if (type == "utility") return(utility)
 
   if (is.null(object$constraints)) {
-    stop("type = \"response\" requires a fit with constraints", call. = FALSE)
+    return((utility > 0) * 1)
   }
   t(apply(utility, 1, ilp_argmax, constraints = object$constraints))
 }

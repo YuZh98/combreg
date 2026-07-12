@@ -13,9 +13,11 @@
 covariates.}
 
 \item{type}{\code{"utility"} returns posterior-mean latent utilities
-\eqn{X \hat\beta}; \code{"response"} additionally maps each utility row to
-its constrained maximizer via integer programming (requires the
-'lpSolve' package and a fit with constraints).}
+\eqn{X \hat\beta}; \code{"response"} additionally maps each utility row to a
+feasible response — the constrained maximizer via integer programming
+for constrained fits (requires the 'lpSolve' package), or the
+coordinatewise sign indicator \eqn{1\{x^\top\hat\beta > 0\}} for
+\code{method = "unconstrained"} fits.}
 
 \item{...}{Unused.}
 }

@@ -79,7 +79,10 @@ plot(fit, pars = c("beta[1,1]", "beta[2,1]"))
 ```
 
 Draws convert directly to the `coda` ecosystem via `coda::as.mcmc(fit)`, and
-to `posterior::draws_array` via `posterior::as_draws(fit)`.
+to `posterior::draws_array` via `posterior::as_draws(fit)`. For the full
+diagnostics workflow — the structured `crr_diagnostics()` report, violin /
+ESS / efficiency / residual plots, and benchmarking with `crr_benchmark()` —
+see `vignette("diagnostics")`.
 
 ## Why constraints matter
 

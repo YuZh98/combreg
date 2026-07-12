@@ -10,5 +10,13 @@ Initial release.
   `sample_dual()`, `draw_utility()`, `sample_utility()`, `dual_feasible()`,
   `coef_precompute()`, `update_coef()`.
 - Data simulation: `simulate_crr()`, `random_constraints()`.
-- `coda` and `posterior` converters; `summary()`, `plot()`, `coef()`,
-  `predict()` methods.
+- Diagnostics: `crr_diagnostics()` structured MCMC + regression report,
+  `crr_ess()`, `crr_rhat()`, `fitted()` and `residuals()` methods.
+- Benchmarking: `crr_benchmark()` compares methods on common data (timing,
+  ESS per second, RMSE, and interval coverage against known truth).
+- Plotting: `plot()` types `"trace"`, `"acf"`, `"violin"`, `"ess"`,
+  `"ess_time"`, and `"residual"` (heat map).
+- `coda` and `posterior` converters; `summary()`, `coef()`, `predict()`
+  methods.
+- Vignettes: introduction (`combreg`) and diagnostics/benchmarking
+  (`diagnostics`).

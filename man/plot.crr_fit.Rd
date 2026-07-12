@@ -2,24 +2,44 @@
 % Please edit documentation in R/methods.R
 \name{plot.crr_fit}
 \alias{plot.crr_fit}
-\title{Trace and autocorrelation plots}
+\title{Diagnostic plots for a crr fit}
 \usage{
-\method{plot}{crr_fit}(x, pars = NULL, type = c("trace", "acf"), ...)
+\method{plot}{crr_fit}(
+  x,
+  pars = NULL,
+  type = c("trace", "acf", "violin", "ess", "ess_time", "residual"),
+  ...
+)
 }
 \arguments{
 \item{x}{A \code{crr_fit} object.}
 
-\item{pars}{Character vector of parameter names (e.g. \code{"beta[1,2]"}), or
-\code{NULL} for the first four.}
+\item{pars}{Character vector of parameter names (e.g. \code{"beta[1,2]"}).
+Defaults to the first four parameters for \code{"trace"}/\code{"acf"} and all
+parameters otherwise. Ignored for \code{"residual"}.}
 
-\item{type}{\code{"trace"} or \code{"acf"}.}
+\item{type}{Plot type; see Details.}
 
-\item{...}{Passed to the base plotting functions.}
+\item{...}{Passed to the underlying base plotting functions.}
 }
 \value{
 \code{x}, invisibly.
 }
 \description{
-Plots post-warmup traces (and optionally autocorrelations) for a subset of
-coefficients.
+All plots use post-warmup thinned draws.
+}
+\details{
+\itemize{
+\item \code{"trace"}: per-parameter trace plots, chains overlaid.
+\item \code{"acf"}: per-parameter autocorrelation functions (chains pooled).
+\item \code{"violin"}: violin plot of the marginal posterior of each coefficient,
+with median and central 95\% interval.
+\item \code{"ess"}: effective sample size per coefficient, with a dashed reference
+line at 100.
+\item \code{"ess_time"}: effective sample size per second of sampling time —
+the efficiency measure used for method comparison in the paper.
+\item \code{"residual"}: heat map of the training residuals \code{Y - fitted(x)}
+(entries in \{-1, 0, 1\}); rows are observations, columns response
+coordinates.
+}
 }

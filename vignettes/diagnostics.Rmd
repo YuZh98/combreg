@@ -1,0 +1,114 @@
+---
+title: "Diagnostics and benchmarking"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Diagnostics and benchmarking}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(collapse = TRUE, comment = "#>",
+                      fig.width = 7, fig.height = 4.5)
+has_lpsolve <- requireNamespace("lpSolve", quietly = TRUE)
+knitr::opts_chunk$set(eval = has_lpsolve)
+```
+
+This vignette shows the diagnostic and benchmarking workflow for `crr()`
+fits: the structured diagnostics report, the plotting methods, and the
+one-call benchmark against the unconstrained baseline. It mirrors, at a
+CRAN-friendly scale, the simulation comparisons in *Statistical Modeling of
+Combinatorial Response Data*.
+
+## Setup: simulate and fit
+
+```{r}
+library(combreg)
+
+A <- rbind(
+  c(1, 1, 0),
+  c(0, 1, 1)
+)
+con <- crr_constraints(A, b = c(1, 1))
+sim <- simulate_crr(n = 300, p = 2, constraints = con, seed = 42)
+
+fit <- crr(sim$Y, sim$X, con,
+           n_iter = 2000, warmup = 1000, chains = 2, seed = 42)
+fit
+```
+
+## The diagnostics report
+
+`crr_diagnostics()` assembles everything needed to judge a run in one
+object: per-coefficient posterior summaries, effective sample sizes (total
+and per second of sampling), split-Rhat, MH acceptance, and in-sample
+regression fit. Potential problems (Rhat above 1.05, ESS below 100, very low
+acceptance) are collected as warnings.
+
+```{r}
+report <- crr_diagnostics(fit)
+report
+```
+
+The underlying per-parameter table is available as `report$table` for
+programmatic use.
+
+## Plotting methods
+
+All plots operate on the post-warmup, thinned draws.
+
+Trace and autocorrelation:
+
+```{r}
+plot(fit, type = "trace", pars = c("beta[1,1]", "beta[2,1]"))
+plot(fit, type = "acf", pars = c("beta[1,1]", "beta[2,1]"))
+```
+
+Marginal posteriors of all coefficients as violins (median dot, central 95%
+interval bar):
+
+```{r}
+plot(fit, type = "violin")
+```
+
+Effective sample sizes and sampling efficiency (ESS per second of sampling
+time, the efficiency measure used for method comparison in the paper):
+
+```{r}
+plot(fit, type = "ess")
+plot(fit, type = "ess_time")
+```
+
+Residual heat map of the posterior point-estimate fit
+(`Y - fitted(fit)`, entries in $\{-1, 0, 1\}$):
+
+```{r, fig.height = 5.5}
+plot(fit, type = "residual")
+```
+
+For anything beyond these built-ins, convert the draws with
+`coda::as.mcmc(fit)` or `posterior::as_draws(fit)` and use those ecosystems
+directly.
+
+## Benchmarking against the unconstrained baseline
+
+`crr_benchmark()` fits several methods to the same data with identical
+settings and reports timing, efficiency, in-sample fit, and — when the true
+coefficients are known, as in simulation — RMSE and posterior-interval
+coverage:
+
+```{r}
+bm <- crr_benchmark(sim$Y, sim$X, con, beta = sim$beta,
+                    n_iter = 2000, warmup = 1000, seed = 42)
+bm
+```
+
+Two effects visible here reproduce the paper's findings: the constrained
+sampler estimates $\beta$ with smaller error and better-calibrated
+intervals, because the unconstrained probit baseline conditions on each
+coordinate independently and is biased when responses are in fact
+constrained maximizers.
+
+The fitted models are kept in `bm$fits`, so any of the diagnostics above can
+be applied to each method afterwards, e.g.
+`plot(bm$fits$unconstrained, type = "violin")`.
