@@ -23,3 +23,5 @@ Initial release.
   methods.
 - Vignettes: introduction (`combreg`) and diagnostics/benchmarking
   (`diagnostics`).
+- `inst/scripts/reproduce-table2.R`: reproduces the paper's Table 2
+  simulation study at the original settings.

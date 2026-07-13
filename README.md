@@ -43,6 +43,20 @@ baselines, and how to build custom models from the exported sampling
 primitives, and `vignette("diagnostics")` for the diagnostics and
 benchmarking workflow.
 
+## Reproducing the paper's simulation results
+
+Table 2 of the paper (RMSE for estimating the coefficients across
+dimensionalities `(d, m)`) can be reproduced with the shipped script, which
+runs the paper's exact settings (`n = 1000`, `p = 5`, 50000 iterations,
+warmup 5000, thinning 25, 100 inner hit-and-run steps):
+
+```sh
+Rscript "$(Rscript -e 'cat(system.file("scripts", "reproduce-table2.R", package = "combreg"))')" 2,1 5,1 10,5
+```
+
+Low-dimensional cells take minutes; the largest cells (`d = 1000`) take
+hours to days, matching the timings reported in the paper.
+
 ## License
 
 MIT © Hugh Zheng
