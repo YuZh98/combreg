@@ -9,3 +9,4 @@ src/*.dll
 docs/*
 vignettes/*.html
 vignettes/*.R
+experiments/output/
