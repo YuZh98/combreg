@@ -7,7 +7,6 @@ src/*.so
 src/*.dll
 
 docs/*
-!docs/*.md
 vignettes/*.html
 vignettes/*.R
 experiments/
