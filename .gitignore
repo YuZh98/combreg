@@ -10,4 +10,4 @@ docs/*
 !docs/*.md
 vignettes/*.html
 vignettes/*.R
-experiments/output/
+experiments/
