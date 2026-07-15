@@ -115,6 +115,7 @@ machinery entirely.
 `crr_benchmark`.
 
 **Not shipped in the package** (development / research assets, kept out of the
-CRAN tarball via `.Rbuildignore`) — `experiments/zeta_block_experiment.R`
-(block-size research harness), `inst/scripts/reproduce-table2.R` (paper
-reproduction; note this one *is* installed, under `inst/`).
+CRAN tarball via `.Rbuildignore`) — `experiments/zeta_block_tuning/`
+(block-size research harness behind the adaptive `zeta_block` controller),
+`inst/scripts/reproduce-table2.R` (paper reproduction; note this one *is*
+installed, under `inst/`).

@@ -111,6 +111,11 @@ dual_feasible <- function(constraints, zeta, Y, U,
 #'
 #' @inheritParams sample_dual
 #' @param Mu Mean matrix (`n` x `d`), e.g. `X %*% beta`.
+#' @param block Number of coordinates to update this step. When `NULL`
+#'   (default), it is resolved from `control$zeta_block`: the fixed integer if
+#'   set, otherwise `min(d, 100)` (the adaptive controller in [crr()] supplies
+#'   an explicit value each step, so this fallback only applies to direct
+#'   callers under an adaptive control).
 #'
 #' @return List with `zeta` (updated matrix) and `accept` (0/1 vector,
 #'   per-observation acceptance).
@@ -118,11 +123,14 @@ dual_feasible <- function(constraints, zeta, Y, U,
 #' @export
 sample_utility <- function(constraints, zeta, Y, U, active, Mu,
                            kernel = "exponential",
-                           control = crr_control()) {
+                           control = crr_control(), block = NULL) {
   d <- ncol(zeta)
   UA <- U %*% constraints$A
 
-  block <- min(d, control$zeta_block)
+  if (is.null(block)) {
+    block <- if (is.numeric(control$zeta_block)) control$zeta_block else 100
+  }
+  block <- max(1L, min(d, as.integer(block)))
   subset <- sample.int(d, block, replace = FALSE)
   zeta_new <- draw_utility(zeta, Mu, Y, UA, subset)
 

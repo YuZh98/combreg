@@ -1,3 +1,26 @@
+# combreg 0.2.0
+
+- `crr_control()` gains an adaptive latent-utility block size. `zeta_block` now
+  accepts `"adaptive"` (the new default) in addition to a fixed integer. The
+  adaptive rule tunes the block size during warmup with a dual-averaging
+  controller to hit `zeta_target_accept` (default 0.6), then freezes it for
+  sampling. The optimal block size depends on the constraint geometry rather
+  than the response dimension alone, so this removes a manual tuning step and
+  improves mixing efficiency across problems (up to ~2x faster than the former
+  fixed `min(d, 100)` on tightly constrained, high-dimensional responses) with
+  no change to the posterior. Pass an integer `zeta_block` for the previous
+  fixed behavior.
+- **Reproducibility note:** because the default changed from a fixed
+  `min(d, 100)` block to `"adaptive"`, a seeded `crr()` call with no explicit
+  `zeta_block` now consumes a different RNG stream and returns different draws
+  than in 0.1.0. Pass `zeta_block = 100` (or your prior value) to reproduce
+  0.1.0 results exactly; `inst/scripts/reproduce-table2.R` already does this.
+- The tuned block size is stored on the fit (`zeta_block_tuned`) and shown by
+  `print()`.
+- `accept_rate` (and the low-acceptance diagnostic) now averages over the
+  post-warmup sampling phase only, so it reflects the frozen proposal rather
+  than warmup adaptation transients.
+
 # combreg 0.1.0
 
 Initial release.

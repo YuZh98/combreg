@@ -37,7 +37,9 @@ args <- commandArgs(trailingOnly = TRUE)
 if (length(args) == 0) args <- c("2,1", "5,1", "10,5", "20,10")
 cells <- lapply(strsplit(args, ","), as.integer)
 
-control <- crr_control(n_iter_hit_and_run = 100, n_threads = 4)
+# Fixed zeta_block = min(d, 100) matches the paper's original settings; the
+# package default is now "adaptive", so pin it here for exact reproduction.
+control <- crr_control(n_iter_hit_and_run = 100, zeta_block = 100, n_threads = 4)
 
 results <- data.frame()
 for (cell in cells) {
