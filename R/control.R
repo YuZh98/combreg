@@ -2,7 +2,9 @@
 #'
 #' Tuning parameters for the MH-within-Gibbs sampler in [crr()].
 #'
-#' @param n_iter_hit_and_run Inner hit-and-run steps per dual update.
+#' @param n_iter_hit_and_run Inner hit-and-run steps per dual update. The
+#'   default (100) matches the simulation study of the paper; smaller values
+#'   are faster but mix the dual variable less well.
 #' @param rho Rate of the exponential dual kernel (ignored for
 #'   `kernel = "half_gaussian"`).
 #' @param zeta_block Maximum number of response coordinates updated per
@@ -18,7 +20,7 @@
 #' @return An object of class `crr_control`.
 #'
 #' @export
-crr_control <- function(n_iter_hit_and_run = 30,
+crr_control <- function(n_iter_hit_and_run = 100,
                         rho = 1,
                         zeta_block = 100,
                         max_dir_tries = 1000,

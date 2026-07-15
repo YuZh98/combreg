@@ -10,3 +10,4 @@ docs/*
 vignettes/*.html
 vignettes/*.R
 experiments/
+src/Makevars

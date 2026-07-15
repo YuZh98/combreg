@@ -6,3 +6,4 @@
 ^docs$
 ^_pkgdown\.yml$
 ^experiments$
+^src/Makevars$

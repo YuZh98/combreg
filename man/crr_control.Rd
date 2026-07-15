@@ -5,7 +5,7 @@
 \title{Sampler control parameters}
 \usage{
 crr_control(
-  n_iter_hit_and_run = 30,
+  n_iter_hit_and_run = 100,
   rho = 1,
   zeta_block = 100,
   max_dir_tries = 1000,
@@ -14,7 +14,9 @@ crr_control(
 )
 }
 \arguments{
-\item{n_iter_hit_and_run}{Inner hit-and-run steps per dual update.}
+\item{n_iter_hit_and_run}{Inner hit-and-run steps per dual update. The
+default (100) matches the simulation study of the paper; smaller values
+are faster but mix the dual variable less well.}
 
 \item{rho}{Rate of the exponential dual kernel (ignored for
 \code{kernel = "half_gaussian"}).}

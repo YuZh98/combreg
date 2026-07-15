@@ -1,0 +1,59 @@
+#!/bin/sh
+# Enable OpenMP for the hit-and-run kernel when the R C++17 compiler supports
+# it. R's SHLIB_OPENMP_CXXFLAGS is empty on stock macOS, so we probe directly:
+#   1. -fopenmp                       (GCC, LLVM/Homebrew clang, most Linux)
+#   2. -Xpreprocessor -fopenmp + libomp  (Apple clang)
+# Falls back to a serial build if neither works. Generates src/Makevars from
+# src/Makevars.in.
+
+: "${R_HOME=$(R RHOME)}"
+RBIN="${R_HOME}/bin/R"
+CXX=$("${RBIN}" CMD config CXX17)
+CXXSTD=$("${RBIN}" CMD config CXX17STD)
+CXXFLAGS=$("${RBIN}" CMD config CXX17FLAGS)
+
+test_omp() {
+  # $1 = extra compile flags, $2 = extra link flags
+  cat > conftest.cpp <<EOF
+#include <omp.h>
+int main(void) { return omp_get_max_threads() > 0 ? 0 : 1; }
+EOF
+  ${CXX} ${CXXSTD} ${CXXFLAGS} $1 conftest.cpp $2 -o conftest >/dev/null 2>&1
+  status=$?
+  rm -f conftest conftest.o conftest.cpp
+  return ${status}
+}
+
+OMP_CXXFLAGS=""
+OMP_LIBS=""
+
+if test_omp "-fopenmp" "-fopenmp"; then
+  OMP_CXXFLAGS="-fopenmp"
+  OMP_LIBS="-fopenmp"
+else
+  omp_prefix=""
+  if command -v brew >/dev/null 2>&1; then
+    omp_prefix=$(brew --prefix libomp 2>/dev/null)
+  fi
+  for d in "${omp_prefix}" /opt/homebrew/opt/libomp /usr/local/opt/libomp /opt/local; do
+    [ -n "${d}" ] && [ -f "${d}/lib/libomp.dylib" ] || continue
+    if test_omp "-Xpreprocessor -fopenmp -I${d}/include" "-L${d}/lib -lomp"; then
+      OMP_CXXFLAGS="-Xpreprocessor -fopenmp -I${d}/include"
+      OMP_LIBS="-L${d}/lib -lomp"
+      break
+    fi
+  done
+fi
+
+if [ -z "${OMP_CXXFLAGS}" ]; then
+  echo "configure: OpenMP not detected; combreg will build single-threaded."
+  echo "           (the n_threads control will have no effect)."
+else
+  echo "configure: OpenMP enabled via '${OMP_CXXFLAGS}'."
+fi
+
+sed -e "s|@OMP_CXXFLAGS@|${OMP_CXXFLAGS}|" \
+    -e "s|@OMP_LIBS@|${OMP_LIBS}|" \
+    src/Makevars.in > src/Makevars
+
+exit 0
