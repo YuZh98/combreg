@@ -20,7 +20,7 @@ int main(void) { return omp_get_max_threads() > 0 ? 0 : 1; }
 EOF
   ${CXX} ${CXXSTD} ${CXXFLAGS} $1 conftest.cpp $2 -o conftest >/dev/null 2>&1
   status=$?
-  rm -f conftest conftest.o conftest.cpp
+  rm -rf conftest conftest.o conftest.cpp conftest.dSYM
   return ${status}
 }
 
