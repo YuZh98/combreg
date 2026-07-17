@@ -20,6 +20,9 @@
 - `accept_rate` (and the low-acceptance diagnostic) now averages over the
   post-warmup sampling phase only, so it reflects the frozen proposal rather
   than warmup adaptation transients.
+- `crr()` accepts a one-sided formula and `data` in place of a covariate
+  matrix, building the design matrix via `model.matrix()` (factor expansion,
+  interactions, intercept). The matrix interface is unchanged.
 
 # combreg 0.1.0
 

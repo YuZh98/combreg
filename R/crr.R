@@ -11,7 +11,12 @@
 #' constraints — useful as a baseline demonstrating constraint-ignoring bias.
 #'
 #' @param Y Response matrix (`n` x `d`), rows in \eqn{\mathcal{Y}}.
-#' @param X Covariate matrix (`n` x `p`).
+#' @param X Covariate matrix (`n` x `p`), or a one-sided formula (e.g.
+#'   `~ x1 + x2`) evaluated against `data` via [model.matrix()] to build the
+#'   design matrix (with the usual factor expansion, interactions, and
+#'   intercept; write `~ 0 + ...` to drop the intercept).
+#' @param data Data frame used to evaluate `X` when it is a formula; ignored
+#'   when `X` is already a matrix.
 #' @param constraints A [crr_constraints] object. Ignored (with a warning)
 #'   for `method = "unconstrained"`.
 #' @param method Sampler: `"mhwg"` (the paper's method) or
@@ -38,7 +43,7 @@
 #' summary(fit)
 #'
 #' @export
-crr <- function(Y, X, constraints,
+crr <- function(Y, X, constraints, data = NULL,
                 method = c("mhwg", "unconstrained"),
                 kernel = c("exponential", "half_gaussian"),
                 prior = crr_prior(),
@@ -55,7 +60,14 @@ crr <- function(Y, X, constraints,
   )
 
   Y <- as.matrix(Y)
-  X <- as.matrix(X)
+  if (inherits(X, "formula")) {
+    if (is.null(data)) {
+      stop("`data` must be supplied when `X` is a formula", call. = FALSE)
+    }
+    X <- stats::model.matrix(X, data)
+  } else {
+    X <- as.matrix(X)
+  }
   n <- nrow(Y)
   d <- ncol(Y)
   p <- ncol(X)

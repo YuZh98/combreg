@@ -8,6 +8,7 @@ crr(
   Y,
   X,
   constraints,
+  data = NULL,
   method = c("mhwg", "unconstrained"),
   kernel = c("exponential", "half_gaussian"),
   prior = crr_prior(),
@@ -23,10 +24,16 @@ crr(
 \arguments{
 \item{Y}{Response matrix (\code{n} x \code{d}), rows in \eqn{\mathcal{Y}}.}
 
-\item{X}{Covariate matrix (\code{n} x \code{p}).}
+\item{X}{Covariate matrix (\code{n} x \code{p}), or a one-sided formula (e.g.
+\code{~ x1 + x2}) evaluated against \code{data} via \code{\link[=model.matrix]{model.matrix()}} to build the
+design matrix (with the usual factor expansion, interactions, and
+intercept; write \code{~ 0 + ...} to drop the intercept).}
 
 \item{constraints}{A \link{crr_constraints} object. Ignored (with a warning)
 for \code{method = "unconstrained"}.}
+
+\item{data}{Data frame used to evaluate \code{X} when it is a formula; ignored
+when \code{X} is already a matrix.}
 
 \item{method}{Sampler: \code{"mhwg"} (the paper's method) or
 \code{"unconstrained"} (baseline).}

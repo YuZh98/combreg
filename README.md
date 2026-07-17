@@ -25,6 +25,11 @@ sim <- simulate_crr(n = 300, p = 2, constraints = con, seed = 1)
 
 fit <- crr(sim$Y, sim$X, con, n_iter = 2000, warmup = 1000, chains = 2, seed = 1)
 summary(fit)
+
+# predictors can also be given as a formula + data frame:
+df  <- data.frame(x1 = sim$X[, 1], x2 = sim$X[, 2])
+fit <- crr(sim$Y, ~ 0 + x1 + x2, con, data = df,
+           n_iter = 2000, warmup = 1000, chains = 2, seed = 1)
 crr_diagnostics(fit)    # structured MCMC + regression diagnostics report
 
 plot(fit, type = "trace")     # also: "acf", "violin", "ess", "ess_time",
@@ -37,6 +42,11 @@ predict(fit, type = "response")
 crr_benchmark(sim$Y, sim$X, con, beta = sim$beta,
               n_iter = 2000, warmup = 1000, seed = 1)
 ```
+
+For a cross-package comparison against constraint-ignoring alternatives
+(`bayesm::rmvpGibbs` multivariate probit, `MNP::mnp` on the simplex special
+case) on RMSE, interval coverage, response feasibility, and sampling
+efficiency, see `inst/benchmarks/benchmark_crosspkg.R`.
 
 See `vignette("combreg")` for the model, the bias of constraint-ignoring
 baselines, and how to build custom models from the exported sampling
