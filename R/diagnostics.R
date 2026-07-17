@@ -246,10 +246,12 @@ crr_diagnostics <- function(object, beta = NULL, prob = 0.95, n_rep = 50) {
     ))
   }
   if (object$method == "mhwg" && mean(object$accept_rate) < 0.05) {
+    fixed_block <- is.numeric(object$control$zeta_block)
     warnings <- c(warnings, paste0(
       "mean MH acceptance rate is low (",
-      format(mean(object$accept_rate), digits = 3),
-      "); consider more iterations or a smaller zeta_block"
+      format(mean(object$accept_rate), digits = 3), "); consider more iterations",
+      if (fixed_block) " or a smaller zeta_block"
+      else " or a longer warmup for the adaptive zeta_block"
     ))
   }
   if (!is.null(ppc)) {

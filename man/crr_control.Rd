@@ -5,9 +5,10 @@
 \title{Sampler control parameters}
 \usage{
 crr_control(
-  n_iter_hit_and_run = 100,
+  n_iter_hit_and_run = 50,
   rho = 1,
-  zeta_block = 100,
+  zeta_block = "adaptive",
+  zeta_target_accept = 0.6,
   max_dir_tries = 1000,
   bound_truncation = 1e+05,
   n_threads = 1
@@ -15,14 +16,23 @@ crr_control(
 }
 \arguments{
 \item{n_iter_hit_and_run}{Inner hit-and-run steps per dual update. The
-default (100) matches the simulation study of the paper; smaller values
+default (50) balances dual mixing against per-sweep cost; smaller values
 are faster but mix the dual variable less well.}
 
 \item{rho}{Rate of the exponential dual kernel (ignored for
 \code{kernel = "half_gaussian"}).}
 
-\item{zeta_block}{Maximum number of response coordinates updated per
-MH step for the latent utilities (the paper uses \code{min(d, 100)}).}
+\item{zeta_block}{Number of response coordinates updated per MH step for the
+latent utilities. Either a positive integer for a fixed block size (the
+paper uses \code{min(d, 100)}), or \code{"adaptive"} (the default) to tune the block
+size automatically during warmup to hit \code{zeta_target_accept}. The optimal
+block size depends on the constraint geometry, not just \code{d}, so the
+adaptive rule is more robust across problems; pass an integer to reproduce
+a fixed-block run.}
+
+\item{zeta_target_accept}{Target MH acceptance rate for the adaptive block
+controller (ignored when \code{zeta_block} is an integer). The default \code{0.6}
+maximizes mixing efficiency across a wide range of problems.}
 
 \item{max_dir_tries}{Maximum attempts to draw a valid hit-and-run
 direction.}

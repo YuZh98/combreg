@@ -12,7 +12,8 @@ sample_utility(
   active,
   Mu,
   kernel = "exponential",
-  control = crr_control()
+  control = crr_control(),
+  block = NULL
 )
 }
 \arguments{
@@ -31,6 +32,12 @@ sample_utility(
 \item{kernel}{\code{"exponential"} or \code{"half_gaussian"}.}
 
 \item{control}{A \link{crr_control} object.}
+
+\item{block}{Number of coordinates to update this step. When \code{NULL}
+(default), it is resolved from \code{control$zeta_block}: the fixed integer if
+set, otherwise \code{min(d, 100)} (the adaptive controller in \code{\link[=crr]{crr()}} supplies
+an explicit value each step, so this fallback only applies to direct
+callers under an adaptive control).}
 }
 \value{
 List with \code{zeta} (updated matrix) and \code{accept} (0/1 vector,

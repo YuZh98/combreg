@@ -15,6 +15,14 @@ print.crr_fit <- function(x, ...) {
   if (x$method == "mhwg") {
     cat("Mean MH acceptance rate: ",
         format(mean(x$accept_rate), digits = 3), "\n", sep = "")
+    if (identical(x$control$zeta_block, "adaptive") &&
+        !is.null(x$zeta_block_tuned)) {
+      tuned <- x$zeta_block_tuned
+      cat("Adaptive zeta_block (target accept ",
+          format(x$control$zeta_target_accept, digits = 2), "): ",
+          if (length(unique(tuned)) == 1L) tuned[1]
+          else paste(tuned, collapse = ", "), "\n", sep = "")
+    }
   }
   cat("Total sampling time: ", format(sum(x$timing), digits = 3), "s\n",
       sep = "")
