@@ -1,0 +1,15 @@
+citHeader("To cite combreg in publications, please cite the method paper:")
+
+bibentry(
+  bibtype       = "Misc",
+  title         = "Statistical Modeling of Combinatorial Response Data",
+  author        = c(person("Yu", "Zheng"),
+                    person("Malay", "Ghosh"),
+                    person("Leo", "Duan")),
+  year          = "2025",
+  eprint        = "2504.11630",
+  archivePrefix = "arXiv",
+  primaryClass  = "stat.ME",
+  url           = "https://arxiv.org/abs/2504.11630",
+  note          = "arXiv:2504.11630"
+)
