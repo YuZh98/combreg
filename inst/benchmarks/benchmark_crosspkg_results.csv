@@ -1,0 +1,8 @@
+"scenario","method","rmse","coverage90","feasibility","min_ess_per_sec","time_sec","note"
+"A: matching polytope","bayesm::rmvpGibbs",0.394,0.267,0.531,187.123,0.463,"MVP ignores constraint; beta/sqrt(Sigma_jj)"
+"A: matching polytope","combreg mhwg",0.181,0.733,1,0.315,9.455,""
+"A: matching polytope","combreg unconstrained",0.403,0.3,0.535,162.667,0.448,""
+"B: simplex (sum<=1)","bayesm::rmvpGibbs",0.481,0.283,0.288,336.412,0.436,"MVP ignores constraint; beta/sqrt(Sigma_jj)"
+"B: simplex (sum<=1)","combreg mhwg",0.235,0.7,1,0.387,6.789,""
+"B: simplex (sum<=1)","combreg unconstrained",0.486,0.25,0.287,278.836,0.455,""
+"B: simplex (sum<=1)","MNP::mnp",0.308,0.767,1,0.832,2.301,"contrast-scale; est_scale=0.94"
