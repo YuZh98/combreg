@@ -7,17 +7,18 @@
 ## Test environments
 
 * local macOS, R 4.4.3
-* win-builder (R-devel) — pending
-* macOS builder, R-hub — pending
+* win-builder, R-devel (2026-07-17 r90265 ucrt) — 0 errors, 0 warnings, 1 note
 
 ## Notes
 
-The only NOTE on CRAN's machines is the expected "New submission".
+This is a new release, so a "New submission" NOTE is expected.
 
-Local checks additionally emit environment-specific messages that do not arise
-on CRAN's check infrastructure: missing `qpdf` and `checkbashisms` helper tools,
-and an outdated system HTML `tidy` that rejects HTML5 tags in the rendered
-manual. The `configure` script is POSIX `sh` with no bashisms.
+On win-builder the incoming-feasibility NOTE also flags possibly-misspelled
+words in DESCRIPTION: these are technical terms ("combinatorial",
+"Combinatorial", "unimodularity", "Rhat"), an author surname ("Zheng"), and the
+Latin "et al." — all spelled correctly.
+
+The method reference is given as a DOI, <doi:10.48550/arXiv.2504.11630>.
 
 ## Compiled code
 

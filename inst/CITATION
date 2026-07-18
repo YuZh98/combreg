@@ -10,6 +10,7 @@ bibentry(
   eprint        = "2504.11630",
   archivePrefix = "arXiv",
   primaryClass  = "stat.ME",
+  doi           = "10.48550/arXiv.2504.11630",
   url           = "https://arxiv.org/abs/2504.11630",
   note          = "arXiv:2504.11630"
 )
