@@ -18,7 +18,7 @@ A \link{crr_constraints} object.
 For small problems (\code{d * m <= 50} and \code{m >= 2} fails), draws random
 \{-1, 0, 1\} matrices until one is totally unimodular, with \code{b = 1}. For
 larger problems, generates a random network (incidence-type) matrix with
-one \code{+1} and one \code{-1} per row — totally unimodular by construction — and
+one \code{+1} and one \code{-1} per row --- totally unimodular by construction --- and
 Bernoulli right-hand sides. This mirrors the simulation design of the
 paper.
 }

@@ -23,7 +23,7 @@ ilp_argmax <- function(utility, constraints) {
 #' For small problems (`d * m <= 50` and `m >= 2` fails), draws random
 #' \{-1, 0, 1\} matrices until one is totally unimodular, with `b = 1`. For
 #' larger problems, generates a random network (incidence-type) matrix with
-#' one `+1` and one `-1` per row — totally unimodular by construction — and
+#' one `+1` and one `-1` per row --- totally unimodular by construction --- and
 #' Bernoulli right-hand sides. This mirrors the simulation design of the
 #' paper.
 #'

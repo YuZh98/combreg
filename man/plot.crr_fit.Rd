@@ -40,7 +40,7 @@ All plots use post-warmup thinned draws.
 with median and central 95\% interval.
 \item \code{"ess"}: effective sample size per coefficient, with a dashed reference
 line at 100.
-\item \code{"ess_time"}: effective sample size per second of sampling time —
+\item \code{"ess_time"}: effective sample size per second of sampling time ---
 the efficiency measure used for method comparison in the paper.
 \item \code{"residual"}: heat map of the training residuals \code{Y - fitted(x)}
 (entries in \{-1, 0, 1\}); rows are observations, columns response

@@ -14,14 +14,11 @@ has_lpsolve <- requireNamespace("lpSolve", quietly = TRUE)
 
 ## The model
 
-`combreg` fits Bayesian regression models whose response is a binary vector
-constrained to a polytope,
+`combreg` fits Bayesian regression models whose response data are binary vectors constrained to an integral polytope,
 
-$$\mathcal{Y} = \{\, y \in \{0,1\}^d : A y \le b \,\},$$
+$$\mathcal{Y} = \{\, y \in \{0,1\}^d : A y \le b \,\}.$$
 
-with $A$ an integer, totally unimodular constraint matrix. Examples include
-matchings, assignments, and other combinatorial structures. Each observation
-has a latent Gaussian utility
+Examples include matchings, survey with skip-logic, network flow, and other combinatorial structures. The proposed model considers each observation having a latent Gaussian utility
 
 $$\zeta_i = \beta^\top x_i + \varepsilon_i, \qquad
 \varepsilon_i \sim N(0, I_d),$$
@@ -30,15 +27,11 @@ and the observed response is the feasible utility maximizer
 
 $$y_i = \arg\max_{y \in \mathcal{Y}} \; \zeta_i^\top y.$$
 
-Posterior sampling uses a Metropolis–Hastings-within-Gibbs scheme on an
-augmented posterior in which each observation carries a dual certificate
-$u_i \ge 0$ of the optimality of $y_i$; the dual updates use hit-and-run
-sampling implemented in C++.
+Posterior sampling uses a Metropolis–Hastings-within-Gibbs scheme on an augmented posterior in which each observation carries a dual variable $u_i \ge 0$ of the optimality of $y_i$; the dual updates use hit-and-run sampling implemented in C++. For more details, see the paper "Statistical Modeling of Combinatorial Response Data". 
 
 ## Defining constraints
 
-Constraints are declared once and validated (including an exhaustive total
-unimodularity check for small systems):
+Constraints are declared once and validated (including an exhaustive total unimodularity check for small systems):
 
 ```{r}
 library(combreg)
@@ -51,14 +44,9 @@ con <- crr_constraints(A, b = c(1, 1))
 con
 ```
 
-Here `A` and `b` describe the polytope $\{\, y \in \{0,1\}^d : A y \le b \,\}$
-directly: each row of `A y <= b` is one linear inequality carving the feasible
-set out of the binary cube. The two rows above encode "at most one of
-coordinates 1--2" and "at most one of coordinates 2--3".
+Here `A` and `b` describe the polytope $\{\, y \in \{0,1\}^d : A y \le b \,\}$ directly: each row of `A y <= b` is one linear inequality carving the feasible set out of the binary cube. The two rows above encode "at most one of coordinates 1--2" and "at most one of coordinates 2--3", corresponding to $y_{i1}+y_{i2}\le 1$ and $y_{i2}+y_{i3}\le 1$, respectively. The feasible set is thus $\{(0,0,0), (1,0,0), (0,1,0), (0,0,1),(1,0,1)\}$.
 
-`is_tum()` and `is_feasible()` are available as standalone utilities. Total
-unimodularity of `A` is what makes the dual-certificate augmentation exact, so
-it is checked at construction; you can also test a matrix directly:
+`is_tum()` and `is_feasible()` are available as standalone utilities. The method requires the polytope $\{y\in[0,1]^d: Ay\le b\}$ to be integral, for which the total unimodularity of `A` is a sufficient condition, so it is checked at construction; you can also test a matrix directly:
 
 ```{r}
 is_tum(A)                                     # TRUE: this A is TUM
@@ -76,8 +64,7 @@ candidates <- rbind(
 is_feasible(con, candidates)
 ```
 
-The same pattern generalizes to any TUM system. A single "at most one active
-coordinate" simplex, for instance, is one dense row:
+The same pattern generalizes to any TUM system. A single "at most one active coordinate" simplex, for instance, is one dense row:
 
 ```{r}
 d <- 3
@@ -89,9 +76,7 @@ is_feasible(con_simplex, rbind(diag(d)[1, ], rep(1, d)))  # e_1 ok, all-ones not
 
 ## Simulating data and fitting
 
-`simulate_crr()` draws covariates, coefficients, and utilities, and maps each
-utility vector to its constrained maximizer by integer programming (this
-requires the `lpSolve` package):
+`simulate_crr()` draws covariates, coefficients, and utilities, and maps each utility vector to its constrained maximizer by integer programming (this requires the `lpSolve` package):
 
 ```{r, eval = has_lpsolve}
 sim <- simulate_crr(n = 300, p = 2, constraints = con, seed = 1)
@@ -112,17 +97,11 @@ head(summary(fit))
 plot(fit, pars = c("beta[1,1]", "beta[2,1]"))
 ```
 
-Draws convert directly to the `coda` ecosystem via `coda::as.mcmc(fit)`, and
-to `posterior::draws_array` via `posterior::as_draws(fit)`. For the full
-diagnostics workflow — the structured `crr_diagnostics()` report, violin /
-ESS / efficiency / residual plots, and benchmarking with `crr_benchmark()` —
-see `vignette("diagnostics")`.
+Draws convert directly to the `coda` ecosystem via `coda::as.mcmc(fit)`, and to `posterior::draws_array` via `posterior::as_draws(fit)`. For the full diagnostics workflow, including the structured `crr_diagnostics()` report, violin / ESS / efficiency / residual plots, and benchmarking with `crr_benchmark()`, see `vignette("diagnostics")`.
 
 ## Why constraints matter
 
-Ignoring the constraint structure biases estimation. The `"unconstrained"`
-method fits independent Albert–Chib probit regressions per coordinate — a
-natural but wrong model for constrained responses:
+Ignoring the constraint structure biases estimation. The `"unconstrained"` method fits independent Albert–Chib probit regressions per coordinate, a natural but wrong model for constrained responses:
 
 ```{r, eval = has_lpsolve}
 fit_un <- crr(sim$Y, sim$X, method = "unconstrained",
@@ -133,33 +112,19 @@ c(constrained   = rmse(coef(fit), sim$beta),
   unconstrained = rmse(coef(fit_un), sim$beta))
 ```
 
-The constrained sampler recovers $\beta$ markedly better because the
-likelihood correctly conditions on $y_i$ being the feasible maximizer rather
-than a vector of independent signs.
+The constrained sampler recovers $\beta$ markedly better because the likelihood correctly conditions on $y_i$ being the feasible maximizer rather than a vector of independent signs.
 
 ## The adaptive `zeta_block` controller
 
-The latent-utility MH update does not refresh all $d$ coordinates at once.
-Each sweep resamples a random sub-block of the coordinates, and the block
-size --- `zeta_block` --- controls the trade-off between per-step acceptance
-and how far the utilities move: small blocks accept often but mix slowly,
-large blocks propose bolder moves that are rejected more often. The optimal
-size depends on the constraint geometry, not just on $d$, so a good default
-cannot be a fixed number.
+The latent-utility MH update does not refresh all $d$ coordinates at once. Each sweep resamples a random sub-block of the coordinates, and the block size --- `zeta_block` --- controls the trade-off between per-step acceptance and how far the utilities move: small blocks accept often but mix slowly, large blocks propose bolder moves that are rejected more often. The optimal size depends on the constraint geometry, not just on $d$, so a good default cannot be a fixed number.
 
-The default `zeta_block = "adaptive"` handles this automatically. During
-warmup a dual-averaging controller tunes the block size to hit
-`zeta_target_accept` (default `0.6`), then freezes it for the sampling phase
-so the proposal is fixed (valid MCMC). The tuned value is reported by
-`print()` and stored on the fit; the `fit` above already used it:
+The default `zeta_block = "adaptive"` handles this automatically. During warmup a dual-averaging controller tunes the block size to hit `zeta_target_accept` (default `0.6`), then freezes it for the sampling phase so the proposal is fixed (valid MCMC). The tuned value is reported by `print()` and stored on the fit; the `fit` above already used it:
 
 ```{r, eval = has_lpsolve}
 fit$zeta_block_tuned
 ```
 
-You therefore never need to tune this by hand. When exact reproducibility of
-the proposal across runs matters --- e.g. regression tests --- pin an integer
-instead, which disables adaptation:
+You therefore need not tune this by hand unless you witness a low acceptance rate during MH-Within-Gibbs sampling. You can also manually set `zeta_block` as a positive integer to turn off the adaptive controller. In this case, the block size is the minimum of $d$ and the specified integer. For example, you can set `zeta_block = 100` to cap the block size at 100 (note that since $d=3$ in this example, the block size will be capped at $3$, and $100$ will be ignored):
 
 ```{r, eval = has_lpsolve}
 fit_fixed <- crr(sim$Y, sim$X, con,
@@ -170,8 +135,7 @@ fit_fixed$zeta_block_tuned   # block sizes are capped at d
 
 ## Customizing the sampler
 
-Every knob is set through `crr()` and `crr_control()`. A fully customized
-fit:
+Every knob is set through `crr()` and `crr_control()`. A fully customized fit:
 
 ```{r, eval = has_lpsolve}
 fit_custom <- crr(sim$Y, sim$X, con,
@@ -188,15 +152,11 @@ fit_custom <- crr(sim$Y, sim$X, con,
 fit_custom
 ```
 
-Running multiple chains lets you assess convergence with the usual
-between-chain diagnostics (see `vignette("diagnostics")`).
+Running multiple chains lets you assess convergence with the usual between-chain diagnostics (see `vignette("diagnostics")`).
 
 ## Formula interface
 
-`X` may be a one-sided formula evaluated against a data frame, which is
-convenient when covariates live in columns. Because `simulate_crr()` uses a
-no-intercept design, drop the intercept with `~ 0 + ...` so the design matrix
-matches the simulated one:
+In the function `crr()`, the second argument `X` may be a one-sided formula evaluated against a data frame. Because `simulate_crr()` uses a no-intercept design, drop the intercept with `~ 0 + ...` so the design matrix matches the simulated one:
 
 ```{r, eval = has_lpsolve}
 df <- data.frame(x1 = sim$X[, 1], x2 = sim$X[, 2])
@@ -205,14 +165,8 @@ fit_formula <- crr(sim$Y, ~ 0 + x1 + x2, con, data = df,
 coef(fit_formula)
 ```
 
-The formula path uses `model.matrix()`, so factor expansion and interactions
-work as in any R modelling function.
+The formula path uses `model.matrix()`, so factor expansion and interactions work as in any R modelling function.
 
 ## Building custom models from primitives
 
-Models with structured (non-linear-in-$X$) means can reuse the exported
-primitives — `init_dual()`, `sample_dual()`, `draw_utility()`,
-`sample_utility()`, `dual_feasible()`, `coef_precompute()`, `update_coef()` —
-and supply their own coefficient updates, so that no constraint logic needs
-to be reimplemented. See their reference pages for the exact conditional
-distributions.
+Models with structured (non-linear-in-$X$) means can reuse the exported primitives (`init_dual()`, `sample_dual()`, `draw_utility()`, `sample_utility()`, `dual_feasible()`, `coef_precompute()`, `update_coef()`) and supply their own coefficient updates, so that no constraint logic needs to be reimplemented. See their reference pages for the exact conditional distributions.

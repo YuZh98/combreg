@@ -8,7 +8,7 @@
 #' unimodular `A`, by MH-within-Gibbs sampling on the dual-certificate
 #' augmented posterior (`method = "mhwg"`). `method = "unconstrained"` fits
 #' independent Albert-Chib probit regressions per coordinate, ignoring the
-#' constraints — useful as a baseline demonstrating constraint-ignoring bias.
+#' constraints --- useful as a baseline demonstrating constraint-ignoring bias.
 #'
 #' @param Y Response matrix (`n` x `d`), rows in \eqn{\mathcal{Y}}.
 #' @param X Covariate matrix (`n` x `p`), or a one-sided formula (e.g.

@@ -4,8 +4,8 @@
 #'
 #' Fits several methods to the same data and collects a comparison table:
 #' wall-clock time, MH acceptance, effective sample sizes and sampling
-#' efficiency (min ESS per second), in-sample fit, and — when the true
-#' coefficients are supplied, e.g. from [simulate_crr()] — estimation error
+#' efficiency (min ESS per second), in-sample fit, and --- when the true
+#' coefficients are supplied, e.g. from [simulate_crr()] --- estimation error
 #' (RMSE) and coverage of the central posterior intervals. This is the
 #' package's canonical way to compare the paper's constrained sampler with
 #' the unconstrained probit baseline (or any subset of registered methods)
@@ -20,7 +20,7 @@
 #'   RMSE and interval coverage are reported.
 #' @param prob Central posterior interval probability for coverage.
 #' @param ... Passed on to [crr()] (e.g. `n_iter`, `warmup`, `chains`,
-#'   `kernel`, `seed`, `control`). The same arguments — including any seed —
+#'   `kernel`, `seed`, `control`). The same arguments --- including any seed ---
 #'   are used for every method.
 #'
 #' @return An object of class `crr_benchmark`: a list with `table` (one row

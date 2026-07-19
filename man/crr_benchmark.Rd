@@ -30,7 +30,7 @@ RMSE and interval coverage are reported.}
 \item{prob}{Central posterior interval probability for coverage.}
 
 \item{...}{Passed on to \code{\link[=crr]{crr()}} (e.g. \code{n_iter}, \code{warmup}, \code{chains},
-\code{kernel}, \code{seed}, \code{control}). The same arguments — including any seed —
+\code{kernel}, \code{seed}, \code{control}). The same arguments --- including any seed ---
 are used for every method.}
 }
 \value{
@@ -41,8 +41,8 @@ method).
 \description{
 Fits several methods to the same data and collects a comparison table:
 wall-clock time, MH acceptance, effective sample sizes and sampling
-efficiency (min ESS per second), in-sample fit, and — when the true
-coefficients are supplied, e.g. from \code{\link[=simulate_crr]{simulate_crr()}} — estimation error
+efficiency (min ESS per second), in-sample fit, and --- when the true
+coefficients are supplied, e.g. from \code{\link[=simulate_crr]{simulate_crr()}} --- estimation error
 (RMSE) and coverage of the central posterior intervals. This is the
 package's canonical way to compare the paper's constrained sampler with
 the unconstrained probit baseline (or any subset of registered methods)
