@@ -70,7 +70,7 @@ where \eqn{\mathcal{Y} = \{y \in \{0,1\}^d : Ay \le b\}} with totally
 unimodular \code{A}, by MH-within-Gibbs sampling on the dual-certificate
 augmented posterior (\code{method = "mhwg"}). \code{method = "unconstrained"} fits
 independent Albert-Chib probit regressions per coordinate, ignoring the
-constraints — useful as a baseline demonstrating constraint-ignoring bias.
+constraints --- useful as a baseline demonstrating constraint-ignoring bias.
 }
 \examples{
 con <- crr_constraints(rbind(c(1, 1, 0), c(0, 1, 1)), b = c(1, 1))

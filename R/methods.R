@@ -80,7 +80,7 @@ coef.crr_fit <- function(object, ...) {
 #'   with median and central 95% interval.
 #' - `"ess"`: effective sample size per coefficient, with a dashed reference
 #'   line at 100.
-#' - `"ess_time"`: effective sample size per second of sampling time —
+#' - `"ess_time"`: effective sample size per second of sampling time ---
 #'   the efficiency measure used for method comparison in the paper.
 #' - `"residual"`: heat map of the training residuals `Y - fitted(x)`
 #'   (entries in \{-1, 0, 1\}); rows are observations, columns response
@@ -243,7 +243,7 @@ plot_residual <- function(x, ...) {
 #'   covariates.
 #' @param type `"utility"` returns posterior-mean latent utilities
 #'   \eqn{X \hat\beta}; `"response"` additionally maps each utility row to a
-#'   feasible response — the constrained maximizer via integer programming
+#'   feasible response --- the constrained maximizer via integer programming
 #'   for constrained fits (requires the 'lpSolve' package), or the
 #'   coordinatewise sign indicator \eqn{1\{x^\top\hat\beta > 0\}} for
 #'   `method = "unconstrained"` fits.
