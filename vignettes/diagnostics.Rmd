@@ -71,6 +71,76 @@ predicts for this noise level, and the RMSE and coverage against the known
 truth confirm accurate estimation. `crr_ppc()` runs the checks standalone
 with more replicates if needed.
 
+### Standalone ESS and split-Rhat
+
+The two MCMC diagnostics that feed the report table are also exported
+directly. `crr_ess()` returns the effective sample size per coefficient —
+the number of independent draws the autocorrelated chain is worth. As a
+rough rule, 100–400 effective draws per quantity of interest is enough for
+stable posterior means and intervals; below ~100 the Monte Carlo error is no
+longer negligible (this is the threshold the report warns on).
+
+```{r}
+crr_ess(fit)
+```
+
+`crr_rhat()` returns the split-Rhat potential scale reduction factor, which
+compares within- to between-half-chain variance. Values at 1 indicate the
+chains have mixed to a common distribution; the usual cut-offs are 1.01
+(strict) to 1.05 (lenient), above which the run has not converged and should
+be lengthened.
+
+```{r}
+crr_rhat(fit)
+```
+
+Here every coefficient clears both bars, consistent with the empty warnings
+block in the report above.
+
+### Standalone posterior predictive checks
+
+`crr_ppc()` runs the goodness-of-fit checks on their own, and `n_rep`
+controls the number of replicates — more replicates sharpen the predictive
+distribution and stabilise the p-values at the cost of extra integer-program
+solves per replicate. The report uses 50 by default; a couple hundred is a
+reasonable standalone budget:
+
+```{r}
+ppc <- crr_ppc(fit, n_rep = 200, seed = 1)
+ppc
+```
+
+The p-values are two-sided: each asks how extreme the observed statistic is
+within its own predictive distribution, so values far from 0 mean the
+observed data are *typical* of the fitted model. This is the formal version
+of the point made above — a modest raw exact-match rate is not evidence
+against the model when it sits comfortably inside the band the model itself
+predicts, whereas a p-value near 0 would flag genuine misfit. The observed
+statistic and its predictive mean and 5–95% band are in `ppc$observed`,
+`ppc$replicated`, and `ppc$p_value` for further inspection.
+
+### Reading the report table
+
+The per-parameter table behind the printed summary is a plain data frame in
+`report$table`, with columns `mean`, `sd`, the interval bounds, `ess`,
+`ess_per_sec`, and `rhat`. Pulling it out lets you find the parameters that
+gate the run — sort by ascending ESS to see the slowest-mixing coordinates,
+or by descending Rhat for the least-converged:
+
+```{r}
+tab <- report$table
+head(tab[order(tab$ess), c("parameter", "ess", "ess_per_sec", "rhat")])
+head(tab[order(-tab$rhat), c("parameter", "rhat", "ess")])
+```
+
+When a report carries warnings (as in the harder matching example below),
+this is the practical way to see *which* coefficients are the bottleneck and
+by how much, rather than reading the truncated printout. The lightweight
+accessors `summary(fit)`, `coef(fit)`, `fitted(fit)`, and `residuals(fit)`
+return the posterior summary data frame, the posterior-mean coefficient
+matrix, and the fitted / residual response matrices for the same kind of
+direct manipulation.
+
 ## Plotting methods
 
 All plots operate on the post-warmup, thinned draws.

@@ -51,7 +51,41 @@ con <- crr_constraints(A, b = c(1, 1))
 con
 ```
 
-`is_tum()` and `is_feasible()` are available as standalone utilities.
+Here `A` and `b` describe the polytope $\{\, y \in \{0,1\}^d : A y \le b \,\}$
+directly: each row of `A y <= b` is one linear inequality carving the feasible
+set out of the binary cube. The two rows above encode "at most one of
+coordinates 1--2" and "at most one of coordinates 2--3".
+
+`is_tum()` and `is_feasible()` are available as standalone utilities. Total
+unimodularity of `A` is what makes the dual-certificate augmentation exact, so
+it is checked at construction; you can also test a matrix directly:
+
+```{r}
+is_tum(A)                                     # TRUE: this A is TUM
+is_tum(rbind(c(1, 1, 0), c(1, 0, 1), c(0, 1, 1)))  # FALSE (odd cycle)
+```
+
+`is_feasible()` checks response rows against the polytope --- each returned
+logical answers "is this row in $\mathcal{Y}$?":
+
+```{r}
+candidates <- rbind(
+  c(1, 0, 1),   # A y = (1, 1) <= (1, 1): feasible
+  c(1, 1, 0)    # A y = (2, 1): violates row 1
+)
+is_feasible(con, candidates)
+```
+
+The same pattern generalizes to any TUM system. A single "at most one active
+coordinate" simplex, for instance, is one dense row:
+
+```{r}
+d <- 3
+A_simplex <- matrix(1, nrow = 1, ncol = d)
+con_simplex <- crr_constraints(A_simplex, b = 1)
+con_simplex
+is_feasible(con_simplex, rbind(diag(d)[1, ], rep(1, d)))  # e_1 ok, all-ones not
+```
 
 ## Simulating data and fitting
 
@@ -102,6 +136,77 @@ c(constrained   = rmse(coef(fit), sim$beta),
 The constrained sampler recovers $\beta$ markedly better because the
 likelihood correctly conditions on $y_i$ being the feasible maximizer rather
 than a vector of independent signs.
+
+## The adaptive `zeta_block` controller
+
+The latent-utility MH update does not refresh all $d$ coordinates at once.
+Each sweep resamples a random sub-block of the coordinates, and the block
+size --- `zeta_block` --- controls the trade-off between per-step acceptance
+and how far the utilities move: small blocks accept often but mix slowly,
+large blocks propose bolder moves that are rejected more often. The optimal
+size depends on the constraint geometry, not just on $d$, so a good default
+cannot be a fixed number.
+
+The default `zeta_block = "adaptive"` handles this automatically. During
+warmup a dual-averaging controller tunes the block size to hit
+`zeta_target_accept` (default `0.6`), then freezes it for the sampling phase
+so the proposal is fixed (valid MCMC). The tuned value is reported by
+`print()` and stored on the fit; the `fit` above already used it:
+
+```{r, eval = has_lpsolve}
+fit$zeta_block_tuned
+```
+
+You therefore never need to tune this by hand. When exact reproducibility of
+the proposal across runs matters --- e.g. regression tests --- pin an integer
+instead, which disables adaptation:
+
+```{r, eval = has_lpsolve}
+fit_fixed <- crr(sim$Y, sim$X, con,
+                 n_iter = 800, warmup = 300, seed = 1,
+                 control = crr_control(zeta_block = 100))
+fit_fixed$zeta_block_tuned   # block sizes are capped at d
+```
+
+## Customizing the sampler
+
+Every knob is set through `crr()` and `crr_control()`. A fully customized
+fit:
+
+```{r, eval = has_lpsolve}
+fit_custom <- crr(sim$Y, sim$X, con,
+                  kernel = "half_gaussian",         # half-Gaussian dual kernel
+                  prior  = crr_prior(sd = 10),      # wider N(0, 100) prior
+                  n_iter = 1000, warmup = 400,      # total / discarded sweeps
+                  thin   = 2,                       # keep every 2nd draw
+                  chains = 2,                       # independent chains (serial)
+                  seed   = 1,                        # reproducible RNG stream
+                  control = crr_control(
+                    n_iter_hit_and_run = 50,        # inner hit-and-run steps
+                    zeta_block = "adaptive",        # auto-tune the block size
+                    n_threads = 1))                 # OpenMP threads (result-invariant)
+fit_custom
+```
+
+Running multiple chains lets you assess convergence with the usual
+between-chain diagnostics (see `vignette("diagnostics")`).
+
+## Formula interface
+
+`X` may be a one-sided formula evaluated against a data frame, which is
+convenient when covariates live in columns. Because `simulate_crr()` uses a
+no-intercept design, drop the intercept with `~ 0 + ...` so the design matrix
+matches the simulated one:
+
+```{r, eval = has_lpsolve}
+df <- data.frame(x1 = sim$X[, 1], x2 = sim$X[, 2])
+fit_formula <- crr(sim$Y, ~ 0 + x1 + x2, con, data = df,
+                   n_iter = 800, warmup = 300, seed = 1)
+coef(fit_formula)
+```
+
+The formula path uses `model.matrix()`, so factor expansion and interactions
+work as in any R modelling function.
 
 ## Building custom models from primitives
 
