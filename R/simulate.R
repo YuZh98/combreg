@@ -41,7 +41,8 @@ random_constraints <- function(d, m) {
       if (is_tum(A)) break
     }
     b <- rep(1, m)
-    crr_constraints(A, b, check_tum = FALSE)
+    # dedup = FALSE keeps the generated (d, m) design faithful for simulation.
+    crr_constraints(A, b, check_tum = FALSE, dedup = FALSE)
   } else {
     A <- matrix(0, m, d)
     for (i in seq_len(m)) {
@@ -50,7 +51,7 @@ random_constraints <- function(d, m) {
       A[i, ind[2]] <- -1
     }
     b <- sample(0:1, m, replace = TRUE)
-    crr_constraints(A, b, check_tum = FALSE)
+    crr_constraints(A, b, check_tum = FALSE, dedup = FALSE)
   }
 }
 
