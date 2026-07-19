@@ -1,6 +1,8 @@
 #!/bin/sh
-# Enable OpenMP for the hit-and-run kernel when the R C++17 compiler supports
-# it. R's SHLIB_OPENMP_CXXFLAGS is empty on stock macOS, so we probe directly:
+# Enable OpenMP for the hit-and-run kernel. The package pins no C++ standard, so
+# R builds it with its default-standard toolchain; on current R that is C++17,
+# hence we probe with the same CXX17 config R will compile with. R's
+# SHLIB_OPENMP_CXXFLAGS is empty on stock macOS, so we probe directly:
 #   1. -fopenmp                       (GCC, LLVM/Homebrew clang, most Linux)
 #   2. -Xpreprocessor -fopenmp + libomp  (Apple clang)
 # Falls back to a serial build if neither works. Generates src/Makevars from
