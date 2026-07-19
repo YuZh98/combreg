@@ -6,7 +6,7 @@
 \alias{combreg-package}
 \title{combreg: Bayesian Regression for Combinatorial Response Data}
 \description{
-Bayesian posterior sampling for regression models whose response is an integer-valued vector subject to combinatorial constraints such as matching data. Implements the Metropolis-Hastings-within-Gibbs sampler with dual-variable augmentation of Zheng et al., an unconstrained probit baseline for comparison, benchmarking helpers, MCMC and regression diagnostics (effective sample sizes, split-Rhat, structured reports), plotting methods (trace, autocorrelation, violin, effective-sample-size, sampling-efficiency, residual heat map), and utilities for constraint validation (total unimodularity, feasibility) and data simulation.
+Bayesian posterior sampling for regression models whose response is an integer-valued vector subject to combinatorial constraints such as matching data. Implements the Metropolis-Hastings-within-Gibbs sampler with dual-variable augmentation of Zheng et al. (2025) \doi{10.48550/arXiv.2504.11630}, an unconstrained probit baseline for comparison, benchmarking helpers, MCMC and regression diagnostics (effective sample sizes, split-Rhat, structured reports), plotting methods (trace, autocorrelation, violin, effective-sample-size, sampling-efficiency, residual heat map), and utilities for constraint validation (total unimodularity, feasibility) and data simulation.
 }
 \seealso{
 Useful links:
@@ -17,7 +17,7 @@ Useful links:
 
 }
 \author{
-\strong{Maintainer}: Hugh Zheng \email{hugh.stats@gmail.com}
+\strong{Maintainer}: Hugh Zheng \email{hugh.stats@gmail.com} [copyright holder]
 
 }
 \keyword{internal}
