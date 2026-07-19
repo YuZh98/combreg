@@ -1,43 +1,31 @@
 # Reproduce Table 2 of "Statistical Modeling of Combinatorial Response Data"
-# (RMSE for estimating beta with the MH-within-Gibbs sampler) using combreg.
+# (Zheng, Ghosh & Duan, 2026+): coefficient RMSE across dimensionalities (d, m).
 #
-# Paper settings per (d, m) cell: n = 1000, p = 5, 50000 iterations with 5000
-# warmup and thinning 25, exponential dual kernel, 100 inner hit-and-run steps,
-# N(0, 1) coefficient prior. Constraints follow the paper's design (random TUM
-# matrices with b = 1 for small d * m, random network incidence matrices with
-# Bernoulli b otherwise), as implemented by random_constraints().
 #
-# Two deliberate choices make this reproduction at least as accurate as the
-# paper's fixed-block runs:
-#
-#   * Adaptive latent-utility block (zeta_block = "adaptive"). The paper uses a
-#     fixed block of min(d, 100) coordinates, which for tightly constrained
-#     cells (large m) is the entire response vector and mixes very slowly
-#     (acceptance can fall below 0.1). The adaptive controller tunes the block
-#     to a healthy acceptance, so those cells converge within the budget instead
-#     of lagging. On loosely constrained cells it leaves the block at the full
-#     size, so it never does worse than the fixed rule. Set ZETA_BLOCK <- 100L
-#     for literal fixed-block reproduction.
-#
-#   * Averaging over COMBREG_NREP realizations. Each Table 2 entry is a single
-#     simulated data set, so the published values carry realization noise
-#     (especially for small cells). Averaging several independent realizations
-#     reports a stable estimate rather than one noisy draw.
-#
-# RMSE at a reduced iteration budget reflects convergence, not bias: shortening
-# the run inflates RMSE for both this code and the paper's. Use the full budget
-# for a faithful comparison.
-#
-# Usage:
-#   Rscript reproduce-table2.R [d,m ...]              # e.g. Rscript reproduce-table2.R 2,1 10,5
-#   COMBREG_NREP=1 COMBREG_NITER=5000 Rscript reproduce-table2.R 2,1   # quick check
-#
-# Without arguments, runs the low-dimensional cells (2,1) (5,1) (10,5) (20,10).
-# Large cells (d up to 1000) match the paper but take hours to days; pass them
-# explicitly. Seeds are fixed per (cell, replication), so results are
-# reproducible; they match the paper statistically, not bit-for-bit.
+# NOTES
+#   * Paper design per (d, m) cell: n = 1000, p = 5, exponential dual kernel,
+#     100 inner hit-and-run steps, N(0, 1) coefficient prior. Constraints follow
+#     random_constraints() (random TUM matrices with b = 1 for small d * m,
+#     random network-incidence matrices otherwise).
+#   * ZETA_BLOCK = "adaptive" (the package default) tunes the latent-utility
+#     block to a healthy acceptance during warmup. The paper's fixed
+#     min(d, 100) block mixes very slowly on tightly constrained (large-m) cells,
+#     so the adaptive controller reaches the paper's RMSE within the budget
+#     instead of lagging, while never doing worse on loose cells. Set
+#     ZETA_BLOCK = 100L for literal fixed-block reproduction.
 
 library(combreg)
+
+## ======================= CONFIGURATION  ===============================
+
+CELLS <- list(c(2, 1), c(5, 1), c(10, 5), c(20, 10))  # (d, m) cells to run
+N_REP      <- 5           # number of repetitions per (d, m) cell
+N_ITER     <- 10000       # MCMC iterations per fit 
+WARMUP     <- 5000        # warmup iterations
+ZETA_BLOCK <- "adaptive"  # "adaptive" (recommended) or an integer, e.g. 100L
+N_THREADS  <- 4           # OpenMP threads for the dual updates
+
+## =======================================================================
 
 paper_rmse <- c("2,1" = 0.046, "5,1" = 0.066, "10,1" = 0.076, "20,1" = 0.065,
                 "50,1" = 0.086, "100,1" = 0.079, "200,1" = 0.090,
@@ -53,23 +41,24 @@ paper_rmse <- c("2,1" = 0.046, "5,1" = 0.066, "10,1" = 0.076, "20,1" = 0.065,
                 "1000,50" = 0.104,
                 "500,100" = 0.263, "1000,100" = 0.128)
 
-args <- commandArgs(trailingOnly = TRUE)
-if (length(args) == 0) args <- c("2,1", "5,1", "10,5", "20,10")
-cells <- lapply(strsplit(args, ","), as.integer)
 
-ZETA_BLOCK <- "adaptive"   # or 100L for literal fixed-block reproduction
-N_REP  <- as.integer(Sys.getenv("COMBREG_NREP",  "5"))
-N_ITER <- as.integer(Sys.getenv("COMBREG_NITER", "50000"))
-WARMUP <- as.integer(Sys.getenv("COMBREG_WARMUP", as.character(N_ITER %/% 10L)))
+## =======================================================================
+# Optional: when called from a terminal, cells may be passed as arguments,
+# e.g. `Rscript reproduce-table2.R 2,1 5,1 10,5`. Ignored under Source / Run All.
+.args <- commandArgs(trailingOnly = TRUE)
+if (length(.args) > 0) CELLS <- lapply(strsplit(.args, ","), as.integer)
+## =======================================================================
 
 control <- crr_control(n_iter_hit_and_run = 100, zeta_block = ZETA_BLOCK,
-                       n_threads = 4)
+                       n_threads = N_THREADS)
 
 results <- data.frame()
-for (cell in cells) {
+for (cell in CELLS) {
   d <- cell[1]; m <- cell[2]; key <- paste0(d, ",", m)
   rmses <- numeric(N_REP); accs <- numeric(N_REP)
   t0 <- proc.time()
+  
+  # Run N_REP independent realizations of the (d, m) cell
   for (r in seq_len(N_REP)) {
     set.seed(1000L * d + m + r)
     con <- random_constraints(d, m)
