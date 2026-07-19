@@ -13,6 +13,13 @@
 #' @param check_tum Verify total unimodularity of `A` (exhaustive check,
 #'   exponential in `min(m, d)`). Set to `FALSE` for large matrices whose TUM
 #'   structure is known, e.g. network/incidence matrices.
+#' @param dedup Remove redundant constraint rows: rows identical in `A` are
+#'   collapsed to the one with the smallest `b`, since a tighter `A y <= b_1`
+#'   implies any `A y <= b_2` with `b_2 >= b_1`. This leaves the feasible set
+#'   unchanged, preserves total unimodularity, and drops redundant dual
+#'   dimensions that otherwise slow the sampler. `TRUE` by default; set `FALSE`
+#'   to keep the system exactly as supplied (e.g. to reproduce a simulation
+#'   design with a fixed number of constraints).
 #'
 #' @return An object of class `crr_constraints` with elements `A`, `b`
 #'   (in `<=` form), `m`, `d`.
@@ -22,7 +29,8 @@
 #' con <- crr_constraints(A, b = c(1, 1))
 #'
 #' @export
-crr_constraints <- function(A, b, direction = "<=", check_tum = TRUE) {
+crr_constraints <- function(A, b, direction = "<=", check_tum = TRUE,
+                            dedup = TRUE) {
   A <- as.matrix(A)
   if (!all(A == round(A))) {
     stop("A must be integer-valued", call. = FALSE)
@@ -46,6 +54,15 @@ crr_constraints <- function(A, b, direction = "<=", check_tum = TRUE) {
   flip <- direction == ">="
   A[flip, ] <- -A[flip, , drop = FALSE]
   b[flip] <- -b[flip]
+
+  if (dedup && m > 1L) {
+    ord <- order(b)                                 # ascending b
+    first <- !duplicated(A[ord, , drop = FALSE])    # first per A-row = smallest b
+    keep <- sort(ord[first])                        # restore original row order
+    A <- A[keep, , drop = FALSE]
+    b <- b[keep]
+    m <- nrow(A)
+  }
 
   if (any(rowSums(abs(A)) == 0)) {
     stop("A contains all-zero rows", call. = FALSE)

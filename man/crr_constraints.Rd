@@ -4,7 +4,7 @@
 \alias{crr_constraints}
 \title{Constraint system for combinatorial responses}
 \usage{
-crr_constraints(A, b, direction = "<=", check_tum = TRUE)
+crr_constraints(A, b, direction = "<=", check_tum = TRUE, dedup = TRUE)
 }
 \arguments{
 \item{A}{Integer constraint matrix (\code{m} x \code{d}).}
@@ -18,6 +18,14 @@ with entries \code{"<="} or \code{">="}. Internally all constraints are stored i
 \item{check_tum}{Verify total unimodularity of \code{A} (exhaustive check,
 exponential in \code{min(m, d)}). Set to \code{FALSE} for large matrices whose TUM
 structure is known, e.g. network/incidence matrices.}
+
+\item{dedup}{Remove redundant constraint rows: rows identical in \code{A} are
+collapsed to the one with the smallest \code{b}, since a tighter \verb{A y <= b_1}
+implies any \verb{A y <= b_2} with \code{b_2 >= b_1}. This leaves the feasible set
+unchanged, preserves total unimodularity, and drops redundant dual
+dimensions that otherwise slow the sampler. \code{TRUE} by default; set \code{FALSE}
+to keep the system exactly as supplied (e.g. to reproduce a simulation
+design with a fixed number of constraints).}
 }
 \value{
 An object of class \code{crr_constraints} with elements \code{A}, \code{b}

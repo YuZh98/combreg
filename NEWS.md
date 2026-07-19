@@ -23,6 +23,13 @@
 - `crr()` accepts a one-sided formula and `data` in place of a covariate
   matrix, building the design matrix via `model.matrix()` (factor expansion,
   interactions, intercept). The matrix interface is unchanged.
+- `crr_constraints()` gains a `dedup` argument (default `TRUE`) that removes
+  redundant constraint rows: rows identical in `A` are collapsed to the one
+  with the smallest `b`, since a tighter `A y <= b_1` implies any looser
+  `A y <= b_2`. This leaves the feasible set and posterior unchanged, preserves
+  total unimodularity, and speeds the sampler by dropping redundant dual
+  dimensions. `random_constraints()` uses `dedup = FALSE` so simulated designs
+  keep their exact `(d, m)`.
 
 # combreg 0.1.0
 
