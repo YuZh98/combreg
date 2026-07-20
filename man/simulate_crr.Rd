@@ -29,7 +29,9 @@ and responses \eqn{y_i = \arg\max_{y \in \mathcal{Y}} \zeta_i^\top y}
 solved by integer programming.
 }
 \examples{
-con <- crr_constraints(rbind(c(1, 1, 0), c(0, 1, 1)), b = c(1, 1))
-sim <- simulate_crr(n = 20, p = 2, constraints = con, seed = 1)
+if (requireNamespace("lpSolve", quietly = TRUE)) {
+  con <- crr_constraints(rbind(c(1, 1, 0), c(0, 1, 1)), b = c(1, 1))
+  sim <- simulate_crr(n = 20, p = 2, constraints = con, seed = 1)
+}
 
 }

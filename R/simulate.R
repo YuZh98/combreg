@@ -73,8 +73,10 @@ random_constraints <- function(d, m) {
 #'   the truth), `zeta` (`n` x `d`), and `constraints`.
 #'
 #' @examples
-#' con <- crr_constraints(rbind(c(1, 1, 0), c(0, 1, 1)), b = c(1, 1))
-#' sim <- simulate_crr(n = 20, p = 2, constraints = con, seed = 1)
+#' if (requireNamespace("lpSolve", quietly = TRUE)) {
+#'   con <- crr_constraints(rbind(c(1, 1, 0), c(0, 1, 1)), b = c(1, 1))
+#'   sim <- simulate_crr(n = 20, p = 2, constraints = con, seed = 1)
+#' }
 #'
 #' @export
 simulate_crr <- function(n, p, constraints, beta = NULL, seed = NULL) {

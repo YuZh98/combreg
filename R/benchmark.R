@@ -28,11 +28,13 @@
 #'   method).
 #'
 #' @examples
-#' con <- crr_constraints(rbind(c(1, 1, 0), c(0, 1, 1)), b = c(1, 1))
-#' sim <- simulate_crr(n = 50, p = 2, constraints = con, seed = 1)
-#' bm <- crr_benchmark(sim$Y, sim$X, con, beta = sim$beta,
-#'                     n_iter = 200, warmup = 100, seed = 1)
-#' bm
+#' if (requireNamespace("lpSolve", quietly = TRUE)) {
+#'   con <- crr_constraints(rbind(c(1, 1, 0), c(0, 1, 1)), b = c(1, 1))
+#'   sim <- simulate_crr(n = 50, p = 2, constraints = con, seed = 1)
+#'   bm <- crr_benchmark(sim$Y, sim$X, con, beta = sim$beta,
+#'                       n_iter = 200, warmup = 100, seed = 1)
+#'   bm
+#' }
 #'
 #' @export
 crr_benchmark <- function(Y, X, constraints,

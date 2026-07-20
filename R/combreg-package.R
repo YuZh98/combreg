@@ -3,6 +3,6 @@
 
 #' @useDynLib combreg, .registration = TRUE
 #' @importFrom Rcpp sourceCpp
-#' @importFrom stats rnorm rexp acf coef predict fitted residuals qnorm
+#' @importFrom stats rnorm rexp acf coef predict fitted residuals
 #' @importFrom truncnorm rtruncnorm
 NULL
