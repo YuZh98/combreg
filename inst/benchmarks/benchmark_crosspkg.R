@@ -1,46 +1,45 @@
-#!/usr/bin/env Rscript
-# Cross-package benchmark: combreg vs. competing CRAN Bayesian samplers on
-# combreg's problem setup (binary response vector on a totally-unimodular
-# integral polytope, y in {0,1}^d s.t. A y <= b).
+# Cross-package benchmark: combreg versus other CRAN Bayesian samplers on
+# combreg's problem setup -- a binary response vector on an integral polytope,
+# y in {0,1}^d with A y <= b.
 #
-# This is a standalone research/benchmark asset, NOT package code. Run it with
-#   Rscript inst/benchmarks/benchmark_crosspkg.R
-# It loads the package with pkgload::load_all(), fits every available method on
-# the SAME simulated data across a few seeds, and reports RMSE, 90% credible
-# interval coverage, posterior-predictive feasibility, and sampling efficiency
-# (min bulk-ESS / wall-clock second). Absent competitor packages are skipped.
+# HOW TO RUN
+#   Open in RStudio and click Source (Run All), or source() it. Edit the
+#   CONFIGURATION block below; SMOKE = TRUE is a fast self-test, FALSE the full
+#   run. Missing competitor packages (bayesm, MNP) are skipped.
 #
-# Methods:
-#   1. combreg mhwg           - the proposed constrained sampler
-#   2. combreg unconstrained  - independent Albert-Chib probit (bias baseline)
-#   3. bayesm::rmvpGibbs      - multivariate probit that IGNORES the constraint
-#   4. MNP::mnp               - multinomial probit, valid ONLY on the simplex
+# METHODS
+#   combreg mhwg          the proposed constrained sampler
+#   combreg unconstrained independent Albert-Chib probit (bias baseline)
+#   bayesm::rmvpGibbs     multivariate probit that ignores the constraint
+#   MNP::mnp              multinomial probit, valid only on the simplex
 #
-# Scenario A: general matching polytope (2x2 bipartite assignment) - methods 1-3
-# Scenario B: simplex special case sum(y) <= 1 ("at most one") - methods 1-4
+# SCENARIOS
+#   A  matching polytope (2x2 bipartite assignment): methods 1-3
+#   B  simplex, sum(y) <= 1 ("at most one"): methods 1-4
 
-# load_all() walks up from cwd to the package root (run from anywhere in the repo).
 suppressWarnings(suppressMessages(pkgload::load_all(quiet = TRUE)))
 
-# ---------------------------------------------------------------------------
-# Configuration
-# ---------------------------------------------------------------------------
-SMOKE <- TRUE   # TRUE: fast self-test (2 seeds, tiny iters, small n). FALSE: full run.
+## ======================= CONFIGURATION  ===============================
+
+SMOKE <- TRUE   # TRUE: fast self-test. FALSE: full run.
 
 if (SMOKE) {
-  SEEDS   <- 1:2
-  N_OBS   <- 80
-  N_ITER  <- 300
-  WARMUP  <- 150
-  S_PRED  <- 30    # posterior-predictive draws for the feasibility metric
+  SEEDS  <- 1:2
+  N_OBS  <- 80
+  N_ITER <- 300
+  WARMUP <- 150
+  S_PRED <- 30
 } else {
-  SEEDS   <- 1:5
-  N_OBS   <- 300
-  N_ITER  <- 2000
-  WARMUP  <- 1000
-  S_PRED  <- 100
+  SEEDS  <- 1:5
+  N_OBS  <- 300
+  N_ITER <- 2000
+  WARMUP <- 1000
+  S_PRED <- 100
 }
-P_COV <- 3        # number of covariates (no intercept: matches simulate_crr)
+P_COV <- 3      # covariates (no intercept, matching simulate_crr)
+# S_PRED = posterior-predictive draws for the feasibility metric
+
+## =======================================================================
 
 # ---------------------------------------------------------------------------
 # Generic metric helpers (operate on a flat R x (p*d) posterior draw matrix
