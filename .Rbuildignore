@@ -8,3 +8,4 @@
 ^experiments$
 ^src/Makevars$
 ^\.Renviron$
+^CRAN-SUBMISSION$
