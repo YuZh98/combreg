@@ -1,0 +1,8 @@
+# Local dev only (excluded from the build tarball via .Rbuildignore).
+# On Homebrew macOS, combreg.so links LLVM libomp (its own OpenMP) while the
+# OpenMP-threaded Homebrew OpenBLAS pulled in by $(BLAS_LIBS) links GCC libgomp.
+# Both OpenMP runtimes can load into one process; depending on init order libomp
+# aborts with "OMP: Error #15 ... libomp.dylib already initialized" (seen when
+# RStudio rebuilds vignettes on Install). This lets them coexist. No effect on
+# non-macOS, and never shipped, so installed users and CRAN are unaffected.
+KMP_DUPLICATE_LIB_OK=TRUE
