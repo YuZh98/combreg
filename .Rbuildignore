@@ -7,3 +7,4 @@
 ^_pkgdown\.yml$
 ^experiments$
 ^src/Makevars$
+^\.Renviron$
