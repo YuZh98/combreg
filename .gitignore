@@ -12,3 +12,5 @@ vignettes/*.R
 experiments/
 src/Makevars
 conftest*
+
+*.tar.gz
