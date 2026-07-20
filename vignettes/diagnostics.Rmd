@@ -30,10 +30,10 @@ A <- rbind(
   c(0, 1, 1)
 )
 con <- crr_constraints(A, b = c(1, 1))
-sim <- simulate_crr(n = 300, p = 2, constraints = con, seed = 42)
+sim <- simulate_crr(n = 80, p = 2, constraints = con, seed = 42)
 
 fit <- crr(sim$Y, sim$X, con,
-           n_iter = 4000, warmup = 2000, chains = 2, seed = 42)
+           n_iter = 800, warmup = 400, chains = 2, seed = 42)
 fit
 ```
 
@@ -102,11 +102,11 @@ block in the report above.
 `crr_ppc()` runs the goodness-of-fit checks on their own, and `n_rep`
 controls the number of replicates — more replicates sharpen the predictive
 distribution and stabilise the p-values at the cost of extra integer-program
-solves per replicate. The report uses 50 by default; a couple hundred is a
+solves per replicate. The report uses 50 by default; a hundred or so is a
 reasonable standalone budget:
 
 ```{r}
-ppc <- crr_ppc(fit, n_rep = 200, seed = 1)
+ppc <- crr_ppc(fit, n_rep = 100, seed = 1)
 ppc
 ```
 
@@ -194,7 +194,7 @@ coverage:
 
 ```{r}
 bm <- crr_benchmark(sim$Y, sim$X, con, beta = sim$beta,
-                    n_iter = 2000, warmup = 1000, seed = 42)
+                    n_iter = 500, warmup = 250, seed = 42)
 bm
 ```
 
@@ -236,9 +236,9 @@ posterior has 27 coefficients and the feasible set is the set of partial
 matchings — a substantially harder target than the toy problem above:
 
 ```{r}
-sim_m <- simulate_crr(n = 200, p = 3, constraints = con_match, seed = 7)
+sim_m <- simulate_crr(n = 80, p = 3, constraints = con_match, seed = 7)
 fit_m <- crr(sim_m$Y, sim_m$X, con_match,
-             n_iter = 3000, warmup = 1500, chains = 2, seed = 7)
+             n_iter = 700, warmup = 350, chains = 2, seed = 7)
 report_m <- crr_diagnostics(fit_m, beta = sim_m$beta)
 print(report_m, max_rows = 8)
 ```
@@ -274,7 +274,7 @@ than the remaining Monte Carlo error. The unconstrained baseline mixes fast
 
 ```{r}
 bm_m <- crr_benchmark(sim_m$Y, sim_m$X, con_match, beta = sim_m$beta,
-                      n_iter = 3000, warmup = 1500, seed = 7)
+                      n_iter = 600, warmup = 300, seed = 7)
 bm_m
 ```
 

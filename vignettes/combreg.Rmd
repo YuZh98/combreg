@@ -79,14 +79,14 @@ is_feasible(con_simplex, rbind(diag(d)[1, ], rep(1, d)))  # e_1 ok, all-ones not
 `simulate_crr()` draws covariates, coefficients, and utilities, and maps each utility vector to its constrained maximizer by integer programming (this requires the `lpSolve` package):
 
 ```{r, eval = has_lpsolve}
-sim <- simulate_crr(n = 300, p = 2, constraints = con, seed = 1)
+sim <- simulate_crr(n = 60, p = 2, constraints = con, seed = 1)
 head(sim$Y)
 ```
 
 ```{r, eval = has_lpsolve}
 fit <- crr(sim$Y, sim$X, con,
            kernel = "exponential",
-           n_iter = 1500, warmup = 500, seed = 1)
+           n_iter = 400, warmup = 200, seed = 1)
 fit
 ```
 
@@ -105,7 +105,7 @@ Ignoring the constraint structure biases estimation. The `"unconstrained"` metho
 
 ```{r, eval = has_lpsolve}
 fit_un <- crr(sim$Y, sim$X, method = "unconstrained",
-              n_iter = 1500, warmup = 500, seed = 1)
+              n_iter = 400, warmup = 200, seed = 1)
 
 rmse <- function(est, truth) sqrt(mean((est - truth)^2))
 c(constrained   = rmse(coef(fit), sim$beta),
@@ -128,7 +128,7 @@ You therefore need not tune this by hand unless you witness a low acceptance rat
 
 ```{r, eval = has_lpsolve}
 fit_fixed <- crr(sim$Y, sim$X, con,
-                 n_iter = 800, warmup = 300, seed = 1,
+                 n_iter = 300, warmup = 150, seed = 1,
                  control = crr_control(zeta_block = 100))
 fit_fixed$zeta_block_tuned   # block sizes are capped at d
 ```
@@ -141,12 +141,12 @@ Every knob is set through `crr()` and `crr_control()`. A fully customized fit:
 fit_custom <- crr(sim$Y, sim$X, con,
                   kernel = "half_gaussian",         # half-Gaussian dual kernel
                   prior  = crr_prior(sd = 10),      # wider N(0, 100) prior
-                  n_iter = 1000, warmup = 400,      # total / discarded sweeps
+                  n_iter = 400, warmup = 200,       # total / discarded sweeps
                   thin   = 2,                       # keep every 2nd draw
                   chains = 2,                       # independent chains (serial)
                   seed   = 1,                        # reproducible RNG stream
                   control = crr_control(
-                    n_iter_hit_and_run = 50,        # inner hit-and-run steps
+                    n_iter_hit_and_run = 20,        # inner hit-and-run steps
                     zeta_block = "adaptive",        # auto-tune the block size
                     n_threads = 1))                 # OpenMP threads (result-invariant)
 fit_custom
@@ -161,7 +161,7 @@ In the function `crr()`, the second argument `X` may be a one-sided formula eval
 ```{r, eval = has_lpsolve}
 df <- data.frame(x1 = sim$X[, 1], x2 = sim$X[, 2])
 fit_formula <- crr(sim$Y, ~ 0 + x1 + x2, con, data = df,
-                   n_iter = 800, warmup = 300, seed = 1)
+                   n_iter = 300, warmup = 150, seed = 1)
 coef(fit_formula)
 ```
 
