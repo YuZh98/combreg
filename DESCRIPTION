@@ -8,6 +8,7 @@ Description: Bayesian regression whose response data are integer-valued vectors 
 Depends: R (>= 4.0)
 License: MIT + file LICENSE
 Encoding: UTF-8
+Language: en-US
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.3.3
 Imports:
