@@ -40,9 +40,11 @@ problems (low ESS, high Rhat, low acceptance, extreme predictive p-values)
 are collected as warnings and flagged by \code{print()}.
 }
 \examples{
-con <- crr_constraints(rbind(c(1, 1, 0), c(0, 1, 1)), b = c(1, 1))
-sim <- simulate_crr(n = 50, p = 2, constraints = con, seed = 1)
-fit <- crr(sim$Y, sim$X, con, n_iter = 200, warmup = 100, seed = 1)
-crr_diagnostics(fit, beta = sim$beta, n_rep = 20)
+if (requireNamespace("lpSolve", quietly = TRUE)) {
+  con <- crr_constraints(rbind(c(1, 1, 0), c(0, 1, 1)), b = c(1, 1))
+  sim <- simulate_crr(n = 50, p = 2, constraints = con, seed = 1)
+  fit <- crr(sim$Y, sim$X, con, n_iter = 200, warmup = 100, seed = 1)
+  crr_diagnostics(fit, beta = sim$beta, n_rep = 20)
+}
 
 }

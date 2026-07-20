@@ -17,3 +17,13 @@ Posterior mean coefficient matrix (\code{p} x \code{d}).
 \description{
 Posterior mean coefficients
 }
+\examples{
+if (requireNamespace("lpSolve", quietly = TRUE)) {
+  con <- crr_constraints(rbind(c(1, 1, 0), c(0, 1, 1)), b = c(1, 1))
+  sim <- simulate_crr(n = 50, p = 2, constraints = con, seed = 1)
+  fit <- crr(sim$Y, sim$X, con, n_iter = 200, warmup = 100, seed = 1)
+  coef(fit)   # posterior mean of beta, a p x d matrix (row k = covariate k,
+              # column j = response coordinate j)
+}
+
+}

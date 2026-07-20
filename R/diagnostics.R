@@ -9,6 +9,15 @@
 #'
 #' @return Named numeric vector of length `p * d`.
 #'
+#' @examples
+#' if (requireNamespace("lpSolve", quietly = TRUE)) {
+#'   con <- crr_constraints(rbind(c(1, 1, 0), c(0, 1, 1)), b = c(1, 1))
+#'   sim <- simulate_crr(n = 50, p = 2, constraints = con, seed = 1)
+#'   fit <- crr(sim$Y, sim$X, con, n_iter = 200, warmup = 100, seed = 1)
+#'   crr_ess(fit)   # effective sample size per coefficient; larger means better
+#'                  # mixing (a few hundred is usually plenty for point estimates)
+#' }
+#'
 #' @export
 crr_ess <- function(object) {
   stopifnot(inherits(object, "crr_fit"))
@@ -38,6 +47,15 @@ split_rhat <- function(mat) {
 #' @param object A `crr_fit` object.
 #'
 #' @return Named numeric vector of length `p * d`.
+#'
+#' @examples
+#' if (requireNamespace("lpSolve", quietly = TRUE)) {
+#'   con <- crr_constraints(rbind(c(1, 1, 0), c(0, 1, 1)), b = c(1, 1))
+#'   sim <- simulate_crr(n = 50, p = 2, constraints = con, seed = 1)
+#'   fit <- crr(sim$Y, sim$X, con, n_iter = 200, warmup = 100, seed = 1)
+#'   crr_rhat(fit)  # values near 1 indicate convergence; above ~1.05 is a
+#'                  # sign the chain needs to run longer
+#' }
 #'
 #' @export
 crr_rhat <- function(object) {
@@ -73,10 +91,12 @@ crr_rhat <- function(object) {
 #'   (two-sided predictive p-values per statistic), and `n_rep`.
 #'
 #' @examples
-#' con <- crr_constraints(rbind(c(1, 1, 0), c(0, 1, 1)), b = c(1, 1))
-#' sim <- simulate_crr(n = 50, p = 2, constraints = con, seed = 1)
-#' fit <- crr(sim$Y, sim$X, con, n_iter = 200, warmup = 100, seed = 1)
-#' crr_ppc(fit, n_rep = 20, seed = 1)
+#' if (requireNamespace("lpSolve", quietly = TRUE)) {
+#'   con <- crr_constraints(rbind(c(1, 1, 0), c(0, 1, 1)), b = c(1, 1))
+#'   sim <- simulate_crr(n = 50, p = 2, constraints = con, seed = 1)
+#'   fit <- crr(sim$Y, sim$X, con, n_iter = 200, warmup = 100, seed = 1)
+#'   crr_ppc(fit, n_rep = 20, seed = 1)
+#' }
 #'
 #' @export
 crr_ppc <- function(object, n_rep = 50, seed = NULL) {
@@ -174,10 +194,12 @@ ppc_table <- function(x, digits = 3) {
 #'   sampler configuration.
 #'
 #' @examples
-#' con <- crr_constraints(rbind(c(1, 1, 0), c(0, 1, 1)), b = c(1, 1))
-#' sim <- simulate_crr(n = 50, p = 2, constraints = con, seed = 1)
-#' fit <- crr(sim$Y, sim$X, con, n_iter = 200, warmup = 100, seed = 1)
-#' crr_diagnostics(fit, beta = sim$beta, n_rep = 20)
+#' if (requireNamespace("lpSolve", quietly = TRUE)) {
+#'   con <- crr_constraints(rbind(c(1, 1, 0), c(0, 1, 1)), b = c(1, 1))
+#'   sim <- simulate_crr(n = 50, p = 2, constraints = con, seed = 1)
+#'   fit <- crr(sim$Y, sim$X, con, n_iter = 200, warmup = 100, seed = 1)
+#'   crr_diagnostics(fit, beta = sim$beta, n_rep = 20)
+#' }
 #'
 #' @export
 crr_diagnostics <- function(object, beta = NULL, prob = 0.95, n_rep = 50) {

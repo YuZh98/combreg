@@ -35,9 +35,11 @@ distribution (two-sided p-values away from 0). Constrained fits require
 the 'lpSolve' package.
 }
 \examples{
-con <- crr_constraints(rbind(c(1, 1, 0), c(0, 1, 1)), b = c(1, 1))
-sim <- simulate_crr(n = 50, p = 2, constraints = con, seed = 1)
-fit <- crr(sim$Y, sim$X, con, n_iter = 200, warmup = 100, seed = 1)
-crr_ppc(fit, n_rep = 20, seed = 1)
+if (requireNamespace("lpSolve", quietly = TRUE)) {
+  con <- crr_constraints(rbind(c(1, 1, 0), c(0, 1, 1)), b = c(1, 1))
+  sim <- simulate_crr(n = 50, p = 2, constraints = con, seed = 1)
+  fit <- crr(sim$Y, sim$X, con, n_iter = 200, warmup = 100, seed = 1)
+  crr_ppc(fit, n_rep = 20, seed = 1)
+}
 
 }

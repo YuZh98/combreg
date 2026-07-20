@@ -63,6 +63,15 @@ summary.crr_fit <- function(object, ...) {
 #'
 #' @return Posterior mean coefficient matrix (`p` x `d`).
 #'
+#' @examples
+#' if (requireNamespace("lpSolve", quietly = TRUE)) {
+#'   con <- crr_constraints(rbind(c(1, 1, 0), c(0, 1, 1)), b = c(1, 1))
+#'   sim <- simulate_crr(n = 50, p = 2, constraints = con, seed = 1)
+#'   fit <- crr(sim$Y, sim$X, con, n_iter = 200, warmup = 100, seed = 1)
+#'   coef(fit)   # posterior mean of beta, a p x d matrix (row k = covariate k,
+#'               # column j = response coordinate j)
+#' }
+#'
 #' @export
 coef.crr_fit <- function(object, ...) {
   dr <- kept_draws(object)
@@ -250,6 +259,15 @@ plot_residual <- function(x, ...) {
 #' @param ... Unused.
 #'
 #' @return Matrix (`n_new` x `d`) of utilities or feasible responses.
+#'
+#' @examples
+#' if (requireNamespace("lpSolve", quietly = TRUE)) {
+#'   con <- crr_constraints(rbind(c(1, 1, 0), c(0, 1, 1)), b = c(1, 1))
+#'   sim <- simulate_crr(n = 50, p = 2, constraints = con, seed = 1)
+#'   fit <- crr(sim$Y, sim$X, con, n_iter = 200, warmup = 100, seed = 1)
+#'   head(predict(fit, type = "response"))  # feasible 0/1 predictions; each row
+#'                                          # satisfies the constraints A y <= b
+#' }
 #'
 #' @export
 predict.crr_fit <- function(object, newdata = NULL,
