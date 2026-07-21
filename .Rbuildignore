@@ -9,3 +9,7 @@
 ^src/Makevars$
 ^\.Renviron$
 ^CRAN-SUBMISSION$
+^inst/WORDLIST$
+^inst/combreg-codemap\.md$
+^inst/benchmarks$
+^inst/scripts$

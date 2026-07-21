@@ -20,3 +20,4 @@ Coefficient matrix (\code{p} x \code{d}).
 Draws \eqn{\beta_{\cdot j} \sim N(V X^\top \zeta_{\cdot j}, V)} jointly for
 all response coordinates.
 }
+\keyword{internal}

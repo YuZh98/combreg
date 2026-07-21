@@ -51,3 +51,4 @@ coordinatewise envelope \eqn{\tilde\zeta} (max where \eqn{y=1}, min where
 certificate \eqn{U^\star}, and accepts each observation's proposal iff its
 \eqn{u_i^\star} is feasible for the current \eqn{\zeta_i}.
 }
+\keyword{internal}

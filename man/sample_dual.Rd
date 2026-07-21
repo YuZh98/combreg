@@ -35,6 +35,7 @@ Updated dual matrix (\code{n} x \code{m}).
 \description{
 One Gibbs update of \eqn{U \mid \zeta, y}: for each observation, runs
 hit-and-run over the dual-certificate polytope
-\eqn{\mathcal{D}(y_i, \zeta_i) \cap \{u \ge 0\}} targeting the chosen
+\eqn{\mathcal{U}(y_i, \zeta_i) \cap \{u \ge 0\}} targeting the chosen
 kernel, and returns the endpoint.
 }
+\keyword{internal}

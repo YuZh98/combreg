@@ -19,3 +19,4 @@ Computes the active-constraint mask \code{active} (\eqn{1\{A y_i = b\}}) and an
 initial dual matrix \code{U} with independent Exp(1) entries on the active
 support.
 }
+\keyword{internal}

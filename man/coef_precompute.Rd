@@ -18,3 +18,4 @@ List with posterior covariance \code{V} and its lower Cholesky factor
 \description{
 Precompute quantities for the conjugate coefficient update
 }
+\keyword{internal}
