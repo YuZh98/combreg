@@ -22,5 +22,6 @@ Integer 0/1 vector of length \code{n}.
 }
 \description{
 Verifies, per observation, that a dual matrix lies in
-\eqn{\mathcal{D}(y_i, \zeta_i) \cap \{u \ge 0\}}.
+\eqn{\mathcal{U}(y_i, \zeta_i) \cap \{u \ge 0\}}.
 }
+\keyword{internal}

@@ -26,3 +26,4 @@ For each coordinate \code{j} in \code{subset}, draws
 \eqn{\zeta_{\cdot j} \sim TN(\mu_{\cdot j}, 1)} truncated below at
 \eqn{(UA)_{\cdot j}} where \eqn{y = 1} and above where \eqn{y = 0}.
 }
+\keyword{internal}

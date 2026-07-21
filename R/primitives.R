@@ -14,6 +14,7 @@
 #'
 #' @return List with `U` (`n` x `m`) and `active` (`n` x `m` binary mask).
 #'
+#' @keywords internal
 #' @export
 init_dual <- function(constraints, Y) {
   stopifnot(inherits(constraints, "crr_constraints"))
@@ -29,7 +30,7 @@ init_dual <- function(constraints, Y) {
 #'
 #' One Gibbs update of \eqn{U \mid \zeta, y}: for each observation, runs
 #' hit-and-run over the dual-certificate polytope
-#' \eqn{\mathcal{D}(y_i, \zeta_i) \cap \{u \ge 0\}} targeting the chosen
+#' \eqn{\mathcal{U}(y_i, \zeta_i) \cap \{u \ge 0\}} targeting the chosen
 #' kernel, and returns the endpoint.
 #'
 #' @param constraints A [crr_constraints] object.
@@ -42,6 +43,7 @@ init_dual <- function(constraints, Y) {
 #'
 #' @return Updated dual matrix (`n` x `m`).
 #'
+#' @keywords internal
 #' @export
 sample_dual <- function(constraints, zeta, Y, U, active,
                         kernel = "exponential",
@@ -72,6 +74,7 @@ sample_dual <- function(constraints, zeta, Y, U, active,
 #'
 #' @return Matrix (`n` x `d`).
 #'
+#' @keywords internal
 #' @export
 draw_utility <- function(zeta, Mu, Y, UA, subset = seq_len(ncol(zeta))) {
   n <- nrow(zeta)
@@ -87,12 +90,13 @@ draw_utility <- function(zeta, Mu, Y, UA, subset = seq_len(ncol(zeta))) {
 #' Check dual-certificate feasibility
 #'
 #' Verifies, per observation, that a dual matrix lies in
-#' \eqn{\mathcal{D}(y_i, \zeta_i) \cap \{u \ge 0\}}.
+#' \eqn{\mathcal{U}(y_i, \zeta_i) \cap \{u \ge 0\}}.
 #'
 #' @inheritParams sample_dual
 #'
 #' @return Integer 0/1 vector of length `n`.
 #'
+#' @keywords internal
 #' @export
 dual_feasible <- function(constraints, zeta, Y, U,
                           control = crr_control()) {
@@ -120,6 +124,7 @@ dual_feasible <- function(constraints, zeta, Y, U,
 #' @return List with `zeta` (updated matrix) and `accept` (0/1 vector,
 #'   per-observation acceptance).
 #'
+#' @keywords internal
 #' @export
 sample_utility <- function(constraints, zeta, Y, U, active, Mu,
                            kernel = "exponential",
@@ -152,6 +157,7 @@ sample_utility <- function(constraints, zeta, Y, U, active, Mu,
 #' @return List with posterior covariance `V` and its lower Cholesky factor
 #'   `L`, for use in [update_coef()].
 #'
+#' @keywords internal
 #' @export
 coef_precompute <- function(X, prior = crr_prior()) {
   stopifnot(inherits(prior, "crr_prior"))
@@ -171,6 +177,7 @@ coef_precompute <- function(X, prior = crr_prior()) {
 #'
 #' @return Coefficient matrix (`p` x `d`).
 #'
+#' @keywords internal
 #' @export
 update_coef <- function(X, zeta, precomp) {
   p <- ncol(X)
