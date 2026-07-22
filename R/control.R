@@ -2,9 +2,17 @@
 #'
 #' Tuning parameters for the MH-within-Gibbs sampler in [crr()].
 #'
-#' @param n_iter_hit_and_run Inner hit-and-run steps per dual update. The
-#'   default (50) balances dual mixing against per-sweep cost; smaller values
-#'   are faster but mix the dual variable less well.
+#' @param n_iter_hit_and_run Inner hit-and-run steps for the dual refresh
+#'   \eqn{U \mid \zeta, y}. The default (50) balances dual mixing against
+#'   per-sweep cost; smaller values are faster but mix the dual variable less
+#'   well. This step carries `U` forward, so any value is valid and the choice
+#'   only affects efficiency.
+#' @param n_iter_hit_and_run_mh Inner hit-and-run steps for the dual
+#'   certificate drawn inside the Metropolis-Hastings update of the latent
+#'   utilities. `NULL` (the default) reuses `n_iter_hit_and_run`. Unlike the
+#'   dual refresh, the MH acceptance probability depends on the distribution of
+#'   this certificate, so more steps may be needed here --- particularly when
+#'   many constraints are active for an observation.
 #' @param rho Rate of the exponential dual kernel (ignored for
 #'   `kernel = "half_gaussian"`).
 #' @param zeta_block Number of response coordinates updated per MH step for the
@@ -29,6 +37,7 @@
 #'
 #' @export
 crr_control <- function(n_iter_hit_and_run = 50,
+                        n_iter_hit_and_run_mh = NULL,
                         rho = 1,
                         zeta_block = "adaptive",
                         zeta_target_accept = 0.6,
@@ -40,8 +49,12 @@ crr_control <- function(n_iter_hit_and_run = 50,
                      is.finite(zeta_block) && zeta_block >= 1)) {
     stop("zeta_block must be a positive integer or \"adaptive\"", call. = FALSE)
   }
+  if (is.null(n_iter_hit_and_run_mh)) {
+    n_iter_hit_and_run_mh <- n_iter_hit_and_run
+  }
   stopifnot(
     n_iter_hit_and_run >= 2,
+    n_iter_hit_and_run_mh >= 2,
     rho > 0,
     zeta_target_accept > 0, zeta_target_accept < 1,
     max_dir_tries >= 1,
@@ -51,6 +64,7 @@ crr_control <- function(n_iter_hit_and_run = 50,
   structure(
     list(
       n_iter_hit_and_run = as.integer(n_iter_hit_and_run),
+      n_iter_hit_and_run_mh = as.integer(n_iter_hit_and_run_mh),
       rho = rho,
       zeta_block = if (adaptive) "adaptive" else as.integer(zeta_block),
       zeta_target_accept = zeta_target_accept,

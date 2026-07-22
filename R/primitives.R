@@ -140,7 +140,14 @@ sample_utility <- function(constraints, zeta, Y, U, active, Mu,
   zeta_new <- draw_utility(zeta, Mu, Y, UA, subset)
 
   zeta_tilde <- (Y > 0.5) * pmax(zeta, zeta_new) + (Y < 0.5) * pmin(zeta, zeta_new)
-  U_star <- sample_dual(constraints, zeta_tilde, Y, U, active, kernel, control)
+  # The certificate governs the acceptance probability, so it gets its own
+  # sweep count; falls back to n_iter_hit_and_run for controls built elsewhere.
+  control_mh <- control
+  if (!is.null(control$n_iter_hit_and_run_mh)) {
+    control_mh$n_iter_hit_and_run <- control$n_iter_hit_and_run_mh
+  }
+  U_star <- sample_dual(constraints, zeta_tilde, Y, U, active, kernel,
+                        control_mh)
 
   accept <- dual_feasible(constraints, zeta, Y, U_star, control)
   list(

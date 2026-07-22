@@ -6,6 +6,7 @@
 \usage{
 crr_control(
   n_iter_hit_and_run = 50,
+  n_iter_hit_and_run_mh = NULL,
   rho = 1,
   zeta_block = "adaptive",
   zeta_target_accept = 0.6,
@@ -15,9 +16,18 @@ crr_control(
 )
 }
 \arguments{
-\item{n_iter_hit_and_run}{Inner hit-and-run steps per dual update. The
-default (50) balances dual mixing against per-sweep cost; smaller values
-are faster but mix the dual variable less well.}
+\item{n_iter_hit_and_run}{Inner hit-and-run steps for the dual refresh
+\eqn{U \mid \zeta, y}. The default (50) balances dual mixing against
+per-sweep cost; smaller values are faster but mix the dual variable less
+well. This step carries \code{U} forward, so any value is valid and the choice
+only affects efficiency.}
+
+\item{n_iter_hit_and_run_mh}{Inner hit-and-run steps for the dual
+certificate drawn inside the Metropolis-Hastings update of the latent
+utilities. \code{NULL} (the default) reuses \code{n_iter_hit_and_run}. Unlike the
+dual refresh, the MH acceptance probability depends on the distribution of
+this certificate, so more steps may be needed here --- particularly when
+many constraints are active for an observation.}
 
 \item{rho}{Rate of the exponential dual kernel (ignored for
 \code{kernel = "half_gaussian"}).}

@@ -1,3 +1,9 @@
+# combreg (development version)
+
+### Added
+- `crr_control()` gains `n_iter_hit_and_run_mh`, setting the hit-and-run sweep count for the dual certificate drawn inside the Metropolis-Hastings update of the latent utilities, separately from the dual refresh. It defaults to `n_iter_hit_and_run`, so results are unchanged unless it is set.
+
+
 # combreg 0.2.0
 
 ### Added

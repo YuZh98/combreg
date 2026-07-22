@@ -57,7 +57,7 @@ Exported building blocks; reusable for custom mean structures.
 |---|---|---|---|
 | `primitives.R` | one Gibbs / MH block each | `init_dual`, `sample_dual`, `draw_utility`, `dual_feasible`, `sample_utility`, `coef_precompute`, `update_coef` | `sample_dual` → `loop_hit_and_run_cpp`; `dual_feasible` → `check_feasible_dual_cpp` |
 | `constraints.R` | feasible-set definition, redundant-row **de-duplication** (`dedup`), TUM check | `crr_constraints`, `is_tum`, `is_feasible` | `crr_constraints`, `is_tum` → `check_tum_cpp` |
-| `priors.R`, `control.R` | validated parameter objects; `crr_control` tunes the **adaptive `zeta_block`** and `n_iter_hit_and_run` | `crr_prior`, `crr_control` | — |
+| `priors.R`, `control.R` | validated parameter objects; `crr_control` tunes the **adaptive `zeta_block`** and the two hit-and-run sweep counts (`n_iter_hit_and_run` for the dual refresh, `n_iter_hit_and_run_mh` for the MH certificate) | `crr_prior`, `crr_control` | — |
 
 ### Layer 0: native kernels
 Rcpp / RcppArmadillo, OpenMP-parallel, no R state.
