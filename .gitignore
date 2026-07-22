@@ -9,8 +9,12 @@ src/*.dll
 docs/*
 vignettes/*.html
 vignettes/*.R
+inst/doc/
 experiments/
 src/Makevars
 conftest*
+.Rd2pdf*
+*.Rcheck/
+.Renviron
 
 *.tar.gz
