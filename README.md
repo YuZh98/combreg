@@ -23,7 +23,7 @@ Install the development version from GitHub:
 remotes::install_github("YuZh98/combreg")
 ```
 
-Building from source requires a C++17 toolchain (the package links to
+Building from source requires a C++ toolchain (the package links to
 `RcppArmadillo`); OpenMP is used when available and falls back to a serial build
 otherwise.
 
