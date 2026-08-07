@@ -64,9 +64,11 @@ List check_tum_cpp(arma::imat M) {
     current.clear();
     combinations(0, k, current, colComb, m);
 
+    long long checked = 0;
     for (auto& rows : rowComb) {
       arma::uvec rowIdx = conv_to<arma::uvec>::from(rows);
       for (auto& cols : colComb) {
+        if (++checked % 4096 == 0) Rcpp::checkUserInterrupt();
         arma::uvec colIdx = conv_to<arma::uvec>::from(cols);
         arma::imat subMat = M.submat(rowIdx, colIdx);
         int d = detInt(subMat);

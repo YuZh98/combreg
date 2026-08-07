@@ -1,5 +1,6 @@
 #include <RcppArmadillo.h>
 #include <random>
+#include <atomic>
 #ifdef _OPENMP
 #include <omp.h>
 #endif
@@ -195,7 +196,9 @@ arma::vec hit_and_run_chain(
       } else if (b - a < -700) {
         alpha = (1.0 / c) * (a + std::log(1.0 - u_rand));
       } else {
-        alpha = (1.0 / c) * (a + std::log(1.0 - u_rand * (1.0 - std::exp(b - a))));
+        // log1p/expm1 form: 1/c can reach ~1e12, so the naive
+        // log(1 - u*(1 - exp(b - a))) amplifies cancellation for small |b - a|.
+        alpha = (1.0 / c) * (a + std::log1p(u_rand * std::expm1(b - a)));
       }
     } else {
       double a_coeff = 0.0, b_coeff = 0.0;
@@ -297,7 +300,7 @@ arma::mat loop_hit_and_run_cpp(
 
   arma::mat final_samples(n, d);
   std::string err_msg;
-  bool failed = false;
+  std::atomic<bool> failed(false);
 
   if (n_threads < 1) n_threads = 1;
 
@@ -349,6 +352,13 @@ Rcpp::IntegerVector check_feasible_dual_cpp(
   const int n = X0.n_rows;
   const int d = X0.n_cols;
   const int m = A.n_rows;
+
+  if ((int)A.n_cols != d)
+    Rcpp::stop("ncol(A) must equal ncol(X0)");
+  if ((int)Z.n_rows != n || (int)Greater_equal.n_rows != n)
+    Rcpp::stop("Z and Greater_equal must have same number of rows as X0");
+  if ((int)Z.n_cols != m || (int)Greater_equal.n_cols != m)
+    Rcpp::stop("Z and Greater_equal must have one column per row of A");
 
   Rcpp::IntegerVector feas(n);
   int* feas_ptr = INTEGER(feas);
