@@ -18,7 +18,7 @@ DESCRIPTION. These are all correct: the constraint notation "Ay" (matrix A times
 the response vector y), technical terms ("combinatorial", "Combinatorial",
 "Rhat", "unimodularity"), the author surname "Zheng", and the Latin "et al."
 
-The method reference is given as a DOI, <doi:10.48550/arXiv.2504.11630>.
+The method reference is given as a DOI, <doi:10.1080/01621459.2026.2714575>.
 
 ## Compiled code
 

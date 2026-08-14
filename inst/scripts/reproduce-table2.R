@@ -1,5 +1,5 @@
 # Reproduce Table 2 of "Statistical Modeling of Combinatorial Response Data"
-# (Zheng, Ghosh & Duan, 2026+): coefficient RMSE across dimensionalities (d, m).
+# (Zheng, Ghosh & Duan, 2026): coefficient RMSE across dimensionalities (d, m).
 #
 #
 # NOTES

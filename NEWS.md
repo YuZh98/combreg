@@ -3,6 +3,9 @@
 ### Added
 - `crr_control()` gains `n_iter_hit_and_run_mh`, setting the hit-and-run sweep count for the dual certificate drawn inside the Metropolis-Hastings update of the latent utilities, separately from the dual refresh. It defaults to `n_iter_hit_and_run`, so results are unchanged unless it is set.
 
+### Changed
+- `citation("combreg")` now returns the published journal article. The method paper appeared in the Journal of the American Statistical Association on 2026-08-06; references throughout the package point at <doi:10.1080/01621459.2026.2714575> instead of the arXiv preprint.
+
 
 # combreg 0.2.0
 

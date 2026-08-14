@@ -10,9 +10,9 @@
 Bayesian regression for **combinatorial response data**: each response is a
 binary vector constrained to an integral polytope,
 $\mathcal{Y} = \{\,y \in \{0,1\}^d : A y \le b\,\}$. Ignoring the
-constraint and fitting an unconstrained model leads to biased estimation, and enumerating all feasible outcomes is computationally impractical in high-dimensional settings. In [Zheng, Ghosh & Duan (2026+)](https://arxiv.org/abs/2504.11630), an augmented likelihood that respects the combinatorial constraints is proposed, along with a Metropolis–Hastings-within-Gibbs (MH-Within-Gibbs) sampler that scales to high-dimensional problems.
+constraint and fitting an unconstrained model leads to biased estimation, and enumerating all feasible outcomes is computationally impractical in high-dimensional settings. In [Zheng, Ghosh & Duan (2026)](https://doi.org/10.1080/01621459.2026.2714575), an augmented likelihood that respects the combinatorial constraints is proposed, along with a Metropolis–Hastings-within-Gibbs (MH-Within-Gibbs) sampler that scales to high-dimensional problems.
 
-The package implements the MH-Within-Gibbs sampler of [Zheng, Ghosh & Duan (2026+)](https://arxiv.org/abs/2504.11630), with hit-and-run
+The package implements the MH-Within-Gibbs sampler of [Zheng, Ghosh & Duan (2026)](https://doi.org/10.1080/01621459.2026.2714575), with hit-and-run
 dual updates in C++ (OpenMP-parallel across observations), an unconstrained probit baseline, one-call benchmarking, MCMC and regression diagnostics, and utilities for constraint validation and data simulation.
 
 ## Installation
@@ -83,7 +83,7 @@ Two vignettes and a R script cover the details:
 - `vignette("combreg")`: the model, why constraint-ignoring baselines are
   biased, constraint setup, the adaptive block controller, and building custom models from the exported primitives.
 - `vignette("diagnostics")`: the diagnostics and benchmarking workflow.
-- `inst/scripts/reproduce-table2.R`: runs the simulation in [Zheng, Ghosh & Duan (2026+)](https://arxiv.org/abs/2504.11630) and reproduces its Table 2 (coefficient RMSE for varying `(d, m)`).
+- `inst/scripts/reproduce-table2.R`: runs the simulation in [Zheng, Ghosh & Duan (2026)](https://doi.org/10.1080/01621459.2026.2714575) and reproduces its Table 2 (coefficient RMSE for varying `(d, m)`).
 
 
 
@@ -93,7 +93,7 @@ Two vignettes and a R script cover the details:
 citation("combreg")
 ```
 
-Zheng, Y., Ghosh, M., & Duan, L. (2026+). *Statistical Modeling of Combinatorial Response Data.* arXiv:2504.11630. <https://doi.org/10.48550/arXiv.2504.11630>
+Zheng, Y., Ghosh, M., & Duan, L. (2026). *Statistical Modeling of Combinatorial Response Data.* Journal of the American Statistical Association, advance online publication. <https://doi.org/10.1080/01621459.2026.2714575>
 
 ## License
 
